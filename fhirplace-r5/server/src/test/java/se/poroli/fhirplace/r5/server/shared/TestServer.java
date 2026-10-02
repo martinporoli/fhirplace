@@ -19,7 +19,7 @@ public final class TestServer {
     private TestServer() {
     }
 
-    static synchronized URI base() {
+    public static synchronized URI base() {
         if (base == null) {
             ServerUnderTest server = ServiceLoader.load(ServerUnderTest.class).findFirst()
                     .orElseThrow(() -> new IllegalStateException("No ServerUnderTest registered"));
@@ -28,10 +28,16 @@ public final class TestServer {
         return base;
     }
 
-    /** An HTTP response. */
-    record Reply(int status, Map<String, List<String>> headers, String body) {
+    /**
+     * An HTTP response.
+     *
+     * @param status the status
+     * @param headers the headers
+     * @param body the body as text
+     */
+    public record Reply(int status, Map<String, List<String>> headers, String body) {
 
-        String header(String name) {
+        public String header(String name) {
             return headers.entrySet().stream()
                     .filter(e -> e.getKey().equalsIgnoreCase(name))
                     .map(e -> String.join(",", e.getValue()))
@@ -40,24 +46,24 @@ public final class TestServer {
         }
     }
 
-    static Reply get(String path, String... headers) {
+    public static Reply get(String path, String... headers) {
         return send("GET", path, null, headers);
     }
 
-    static Reply delete(String path, String... headers) {
+    public static Reply delete(String path, String... headers) {
         return send("DELETE", path, null, headers);
     }
 
-    static Reply post(String path, String body, String... headers) {
+    public static Reply post(String path, String body, String... headers) {
         return send("POST", path, body, headers);
     }
 
-    static Reply put(String path, String body, String... headers) {
+    public static Reply put(String path, String body, String... headers) {
         return send("PUT", path, body, headers);
     }
 
     /** Sends a request; {@code headers} are name/value pairs. JSON bodies are sent as FHIR JSON by default. */
-    static Reply send(String method, String path, String body, String... headers) {
+    public static Reply send(String method, String path, String body, String... headers) {
         try {
             HttpURLConnection connection = (HttpURLConnection) base().resolve(path).toURL().openConnection();
             connection.setRequestMethod(method);

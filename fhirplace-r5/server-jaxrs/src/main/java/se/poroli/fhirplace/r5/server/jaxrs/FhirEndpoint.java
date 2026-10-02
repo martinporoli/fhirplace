@@ -24,22 +24,8 @@ import se.poroli.fhirplace.r5.server.FhirResponse;
 @ApplicationScoped
 public class FhirEndpoint {
 
-    private final FhirServerBean server;
-
-    /**
-     * Creates the endpoint.
-     *
-     * @param server the FHIR server
-     */
     @Inject
-    public FhirEndpoint(FhirServerBean server) {
-        this.server = server;
-    }
-
-    /** CDI proxy constructor. */
-    protected FhirEndpoint() {
-        this.server = null;
-    }
+    FhirServerBean server;
 
     /**
      * Handles {@code GET}.

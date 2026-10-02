@@ -13,24 +13,16 @@ import se.poroli.fhirplace.r5.server.FhirServer;
 @ApplicationScoped
 public class FhirServerBean {
 
-    private final Instance<Object> beans;
-    private FhirServer server;
-
     /**
-     * Creates the bean.
-     *
-     * @param beans all beans; an {@code @Any Instance<Object>} injection point also keeps build-time containers
-     *     such as Quarkus from removing handler beans that nothing else injects
+     * All beans. An {@code @Any Instance<Object>} injection point also keeps build-time containers such as Quarkus from
+     * removing handler beans that nothing else injects. Field injection, unlike constructor injection, also works
+     * where a container must fall back to reflection, as in Quarkus's isolated test bootstrap.
      */
     @Inject
-    public FhirServerBean(@Any Instance<Object> beans) {
-        this.beans = beans;
-    }
+    @Any
+    Instance<Object> beans;
 
-    /** CDI proxy constructor. */
-    protected FhirServerBean() {
-        this.beans = null;
-    }
+    private FhirServer server;
 
     /**
      * Builds the server when the application starts, so invalid handlers fail deployment.

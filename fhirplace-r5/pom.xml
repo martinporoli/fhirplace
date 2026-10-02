@@ -22,6 +22,7 @@
         <module>serialization-tests</module>
         <module>server</module>
         <module>server-jaxrs</module>
+        <module>server-jaxrs-quarkus-tests</module>
         <module>server-spring</module>
         <module>bom</module>
         <module>all</module>
