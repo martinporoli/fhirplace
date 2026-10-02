@@ -11,10 +11,10 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>fhirplace-example-spring-boot</artifactId>
+    <artifactId>fhirplace-example-routing-proxy</artifactId>
 
-    <name>FhirPlace Example: Spring Boot</name>
-    <description>Reference FHIR server on Spring Boot built with fhirplace-r5-server-spring. Tested, never packaged.</description>
+    <name>FhirPlace Example: Routing proxy</name>
+    <description>Reference FHIR proxy that routes requests to regional FHIR servers with fhirplace-r5-client. Tested, never packaged.</description>
 
     <properties>
         <!-- A reference for users: compile and test it, but do not package, install or deploy anything. -->
@@ -46,11 +46,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>se.poroli.fhirplace</groupId>
-            <artifactId>fhirplace-r5-observation</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
@@ -59,7 +54,6 @@
             <groupId>se.poroli.fhirplace</groupId>
             <artifactId>fhirplace-r5-client</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

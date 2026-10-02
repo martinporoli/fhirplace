@@ -47,7 +47,7 @@ Patient patient = fhir.read(Patient.class, "123").body();
 fhir.update(patient.toBuilder().active(true).build());          // If-Match from meta.versionId; 412 if stale
 
 try (Stream<Patient> all = fhir.searchAll(Patient.class,
-        Search.where("family", "Chalmers").and("birthdate", Search.ge(LocalDate.of(1970, 1, 1))))) {
+        SearchQuery.where("family", "Chalmers").and("birthdate", SearchQuery.ge(LocalDate.of(1970, 1, 1))))) {
     all.forEach(System.out::println);                           // follows the Bundles' next links
 }
 ```
@@ -79,7 +79,9 @@ Handlers can also answer with their own OperationOutcomes, statuses and headers,
 [custom responses](fhirplace-r5/server#custom-responses).
 
 Add `fhirplace-r5-server-jaxrs` (MicroProfile, Quarkus) or `fhirplace-r5-server-spring` (Spring Boot) and the handlers
-are served. Runnable references: [examples/quarkus](examples/quarkus) and [examples/spring-boot](examples/spring-boot).
+are served. Runnable references: [examples/quarkus](examples/quarkus), [examples/spring-boot](examples/spring-boot),
+and [examples/routing-proxy](examples/routing-proxy), a FHIR proxy that forwards each request to a regional server with
+the client.
 
 ## Modules
 

@@ -32,7 +32,7 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
  * FhirClient fhir = FhirClient.of("https://example.org/fhir");
  * Patient patient = fhir.read(Patient.class, "123").body();
  * fhir.update(patient.toBuilder().active(true).build());          // If-Match from meta.versionId
- * try (Stream<Patient> all = fhir.searchAll(Patient.class, Search.where("family", "Chalmers"))) { ... }
+ * try (Stream<Patient> all = fhir.searchAll(Patient.class, SearchQuery.where("family", "Chalmers"))) { ... }
  * }</pre>
  *
  * <p>A client is an immutable value: the base URL, an {@code HttpClient}, default headers and a format. Creating or
@@ -261,7 +261,7 @@ public final class FhirClient {
      * @return the response with the searchset Bundle
      * @throws FhirClientException for an error status, such as 400 for an unknown parameter
      */
-    public FhirClientResponse<Bundle> search(Class<? extends Resource> type, Search search) {
+    public FhirClientResponse<Bundle> search(Class<? extends Resource> type, SearchQuery search) {
         return send(searchRequest(type, search), Bundle.class);
     }
 
@@ -272,7 +272,8 @@ public final class FhirClient {
      * @param search the search parameters
      * @return the response, completing exceptionally with {@link FhirClientException} for an error status
      */
-    public CompletableFuture<FhirClientResponse<Bundle>> searchAsync(Class<? extends Resource> type, Search search) {
+    public CompletableFuture<FhirClientResponse<Bundle>> searchAsync(Class<? extends Resource> type,
+            SearchQuery search) {
         return sendAsync(searchRequest(type, search), Bundle.class);
     }
 
@@ -286,7 +287,7 @@ public final class FhirClient {
      * @return the matches; close the stream, for example with try-with-resources, when not consuming it fully
      * @throws FhirClientException for an error status, when the page is fetched
      */
-    public <T extends Resource> Stream<T> searchAll(Class<T> type, Search search) {
+    public <T extends Resource> Stream<T> searchAll(Class<T> type, SearchQuery search) {
         Iterator<T> matches = new Iterator<>() {
             private Bundle page = search(type, search).body();
             private Iterator<Bundle.Entry> entries = page.entry().iterator();
@@ -405,7 +406,7 @@ public final class FhirClient {
         return request;
     }
 
-    private HttpRequest.Builder searchRequest(Class<? extends Resource> type, Search search) {
+    private HttpRequest.Builder searchRequest(Class<? extends Resource> type, SearchQuery search) {
         String query = search.toQuery();
         return request(encode(type.getSimpleName()) + (query.isEmpty() ? "" : "?" + query)).GET();
     }

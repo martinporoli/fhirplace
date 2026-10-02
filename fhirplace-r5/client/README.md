@@ -11,9 +11,9 @@ Patient current = fhir.read(Patient.class, patient.id()).body();         // GET
 fhir.update(current.toBuilder().active(true).build());                   // PUT with If-Match from meta.versionId
 fhir.delete(Patient.class, patient.id());
 
-Search search = Search.where("family", "Chalmers")                       // correct FHIR syntax and escaping
-        .and("birthdate", Search.ge(LocalDate.of(1970, 1, 1)))
-        .and("identifier", Search.token("http://acme.org/mrn", "123"));
+SearchQuery search = SearchQuery.where("family", "Chalmers")                       // correct FHIR syntax and escaping
+        .and("birthdate", SearchQuery.ge(LocalDate.of(1970, 1, 1)))
+        .and("identifier", SearchQuery.token("http://acme.org/mrn", "123"));
 Bundle firstPage = fhir.search(Patient.class, search).body();
 try (Stream<Patient> all = fhir.searchAll(Patient.class, search)) {    // follows next links lazily
     all.forEach(System.out::println);

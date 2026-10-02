@@ -24,4 +24,5 @@ curl 'localhost:8080/fhir/Patient?family=chal&_pretty=true'
 curl localhost:8080/fhir/metadata -H 'Accept: application/fhir+xml'
 ```
 
-The tests in `src/test` exercise the API over HTTP with `@SpringBootTest`.
+The tests in `src/test` run the application with `@SpringBootTest` and use it the way another application would,
+through the fhirplace client (`fhirplace-r5-client`). `HttpTest` shows the same API on the wire.

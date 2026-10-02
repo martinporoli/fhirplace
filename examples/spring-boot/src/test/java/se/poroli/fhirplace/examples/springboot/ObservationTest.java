@@ -1,21 +1,23 @@
 package se.poroli.fhirplace.examples.springboot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.web.client.RestClient;
-import se.poroli.fhirplace.r5.bundle.Bundle;
+import se.poroli.fhirplace.r5.client.FhirClient;
+import se.poroli.fhirplace.r5.client.FhirClientException;
+import se.poroli.fhirplace.r5.client.SearchQuery;
 import se.poroli.fhirplace.r5.datatypes.CodeableConcept;
 import se.poroli.fhirplace.r5.datatypes.Coding;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
-import se.poroli.fhirplace.r5.json.FhirJson;
 import se.poroli.fhirplace.r5.observation.Observation;
 import se.poroli.fhirplace.r5.valuesets.ObservationStatus;
 
@@ -26,11 +28,11 @@ class ObservationTest {
     @Value("${local.server.port}")
     private int port;
 
-    private RestClient client;
+    private URI base;
 
     @BeforeEach
-    void createClient() {
-        client = FhirClient.create(port);
+    void setBase() {
+        base = URI.create("http://localhost:" + port + "/fhir");
     }
 
     private static Observation heartRate(String patient) {
@@ -45,29 +47,23 @@ class ObservationTest {
                 .build();
     }
 
-    private Bundle search(String patient, String code) {
-        String body = client.get()
-                .uri(uri -> uri.path("/Observation").queryParam("subject", "{subject}").queryParam("code", "{code}")
-                        .build(patient, code))
-                .retrieve().body(String.class);
-        return FhirJson.read(body, Bundle.class);
-    }
-
     @Test
     void createAndSearchBySubjectAndCode() {
+        FhirClient fhir = FhirClient.of(base);
         String patient = "Patient/" + UUID.randomUUID();
-        String body = client.post().uri("/Observation").contentType(FhirClient.FHIR_JSON)
-                .body(FhirJson.write(heartRate(patient))).retrieve().body(String.class);
-        Observation created = FhirJson.read(body, Observation.class);
+        Observation created = fhir.create(heartRate(patient)).body();
 
-        assertEquals(List.of(created.id()), search(patient, "http://loinc.org|8867-4").entry().stream()
-                .map(entry -> entry.resource().id()).toList());
-        assertEquals(0, search(patient, "http://loinc.org|1234-5").total().value());
+        try (var found = fhir.searchAll(Observation.class, SearchQuery.where("subject", patient)
+                .and("code", SearchQuery.token("http://loinc.org", "8867-4")))) {
+            assertEquals(List.of(created.id()), found.map(Observation::id).toList());
+        }
+        assertEquals(0, fhir.search(Observation.class, SearchQuery.where("subject", patient)
+                .and("code", SearchQuery.token("http://loinc.org", "1234-5"))).body().total().value());
     }
 
     @Test
     void interactionsTheHandlerDoesNotImplementAreNotAllowed() {
-        assertEquals(405, client.delete().uri("/Observation/1").retrieve().toBodilessEntity().getStatusCode()
-                .value());
+        assertEquals(405, assertThrows(FhirClientException.class,
+                () -> FhirClient.of(base).delete(Observation.class, "1")).status());
     }
 }

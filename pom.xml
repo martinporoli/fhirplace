@@ -23,6 +23,7 @@
         <module>fhirplace-r5</module>
         <module>examples/quarkus</module>
         <module>examples/spring-boot</module>
+        <module>examples/routing-proxy</module>
     </modules>
 
     <properties>

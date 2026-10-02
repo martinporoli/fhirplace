@@ -7,19 +7,19 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
-/** The FHIR search syntax that {@link Search} renders. */
-class SearchTest {
+/** The FHIR search syntax that {@link SearchQuery} renders. */
+class SearchQueryTest {
 
-    private static String decoded(Search search) {
+    private static String decoded(SearchQuery search) {
         return URLDecoder.decode(search.toQuery(), StandardCharsets.UTF_8);
     }
 
     @Test
     void rendersAlternativesRepetitionsPrefixesAndTokens() {
-        Search search = Search.where("given:exact", "Peter", "Pete")
-                .and("birthdate", Search.ge(LocalDate.of(1970, 1, 1)))
-                .and("birthdate", Search.lt(LocalDate.of(1980, 1, 1)))
-                .and("identifier", Search.token("http://acme.org/mrn", "123"), Search.token(null, "456"))
+        SearchQuery search = SearchQuery.where("given:exact", "Peter", "Pete")
+                .and("birthdate", SearchQuery.ge(LocalDate.of(1970, 1, 1)))
+                .and("birthdate", SearchQuery.lt(LocalDate.of(1980, 1, 1)))
+                .and("identifier", SearchQuery.token("http://acme.org/mrn", "123"), SearchQuery.token(null, "456"))
                 .count(50)
                 .sort("-birthdate", "family");
 
@@ -30,11 +30,11 @@ class SearchTest {
     @Test
     void escapesSpecialCharactersInPlainValues() {
         assertEquals("family=Smith\\, Jr&code=a\\|b,c\\$d&path=x\\\\y",
-                decoded(Search.where("family", "Smith, Jr").and("code", "a|b", "c$d").and("path", "x\\y")));
+                decoded(SearchQuery.where("family", "Smith, Jr").and("code", "a|b", "c$d").and("path", "x\\y")));
     }
 
     @Test
     void encodesTheQueryForAUrl() {
-        assertEquals("family=Smith%5C%2C%20Jr", Search.where("family", "Smith, Jr").toQuery());
+        assertEquals("family=Smith%5C%2C%20Jr", SearchQuery.where("family", "Smith, Jr").toQuery());
     }
 }

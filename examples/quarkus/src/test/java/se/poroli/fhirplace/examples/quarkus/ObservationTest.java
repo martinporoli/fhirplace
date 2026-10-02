@@ -1,19 +1,22 @@
 package se.poroli.fhirplace.examples.quarkus;
 
-import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import se.poroli.fhirplace.r5.bundle.Bundle;
+import se.poroli.fhirplace.r5.client.FhirClient;
+import se.poroli.fhirplace.r5.client.FhirClientException;
+import se.poroli.fhirplace.r5.client.SearchQuery;
 import se.poroli.fhirplace.r5.datatypes.CodeableConcept;
 import se.poroli.fhirplace.r5.datatypes.Coding;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
-import se.poroli.fhirplace.r5.json.FhirJson;
 import se.poroli.fhirplace.r5.observation.Observation;
 import se.poroli.fhirplace.r5.valuesets.ObservationStatus;
 
@@ -21,7 +24,8 @@ import se.poroli.fhirplace.r5.valuesets.ObservationStatus;
 @QuarkusTest
 class ObservationTest {
 
-    private static final String FHIR_JSON = "application/fhir+json; charset=UTF-8";
+    @TestHTTPResource("fhir")
+    URI base;
 
     private static Observation heartRate(String patient) {
         return Observation.builder()
@@ -37,26 +41,21 @@ class ObservationTest {
 
     @Test
     void createAndSearchBySubjectAndCode() {
+        FhirClient fhir = FhirClient.of(base);
         String patient = "Patient/" + UUID.randomUUID();
-        String body = given().contentType(FHIR_JSON).body(FhirJson.write(heartRate(patient)))
-                .when().post("/fhir/Observation")
-                .then().statusCode(201).extract().asString();
-        Observation created = FhirJson.read(body, Observation.class);
+        Observation created = fhir.create(heartRate(patient)).body();
 
-        String found = given().queryParam("subject", patient).queryParam("code", "http://loinc.org|8867-4")
-                .when().get("/fhir/Observation")
-                .then().statusCode(200).extract().asString();
-        String otherCode = given().queryParam("subject", patient).queryParam("code", "http://loinc.org|1234-5")
-                .when().get("/fhir/Observation")
-                .then().statusCode(200).extract().asString();
-
-        assertEquals(List.of(created.id()), FhirJson.read(found, Bundle.class).entry().stream()
-                .map(entry -> entry.resource().id()).toList());
-        assertEquals(0, FhirJson.read(otherCode, Bundle.class).total().value());
+        try (var found = fhir.searchAll(Observation.class, SearchQuery.where("subject", patient)
+                .and("code", SearchQuery.token("http://loinc.org", "8867-4")))) {
+            assertEquals(List.of(created.id()), found.map(Observation::id).toList());
+        }
+        assertEquals(0, fhir.search(Observation.class, SearchQuery.where("subject", patient)
+                .and("code", SearchQuery.token("http://loinc.org", "1234-5"))).body().total().value());
     }
 
     @Test
     void interactionsTheHandlerDoesNotImplementAreNotAllowed() {
-        given().when().delete("/fhir/Observation/1").then().statusCode(405);
+        assertEquals(405, assertThrows(FhirClientException.class,
+                () -> FhirClient.of(base).delete(Observation.class, "1")).status());
     }
 }

@@ -36,7 +36,7 @@ class FhirClientTest {
         return "F" + UUID.randomUUID().toString().substring(0, 8);
     }
 
-    private List<String> ids(Search search) {
+    private List<String> ids(SearchQuery search) {
         return fhir.search(Patient.class, search).body().entry().stream().map(e -> e.resource().id()).toList();
     }
 
@@ -83,18 +83,19 @@ class FhirClientTest {
         String family = unique() + ", Jr";
         Patient patient = fhir.create(patient(family)).body();
 
-        assertEquals(List.of(patient.id()), ids(Search.where("family", family)));
-        assertEquals(List.of(patient.id()), ids(Search.where("family", family)
-                .and("identifier", Search.token("http://acme.org/mrn", family + "|mrn"))
-                .and("birthdate", Search.ge(LocalDate.of(1980, 1, 1)))
-                .and("birthdate", Search.lt(LocalDate.of(1981, 1, 1)))));
-        assertEquals(List.of(), ids(Search.where("family", family).and("birthdate", Search.lt(LocalDate.of(1980, 1, 1)))));
+        assertEquals(List.of(patient.id()), ids(SearchQuery.where("family", family)));
+        assertEquals(List.of(patient.id()), ids(SearchQuery.where("family", family)
+                .and("identifier", SearchQuery.token("http://acme.org/mrn", family + "|mrn"))
+                .and("birthdate", SearchQuery.ge(LocalDate.of(1980, 1, 1)))
+                .and("birthdate", SearchQuery.lt(LocalDate.of(1981, 1, 1)))));
+        assertEquals(List.of(), ids(SearchQuery.where("family", family)
+                .and("birthdate", SearchQuery.lt(LocalDate.of(1980, 1, 1)))));
     }
 
     @Test
     void searchErrorsAreReported() {
         FhirClientException e = assertThrows(FhirClientException.class,
-                () -> fhir.search(Patient.class, Search.where("shoe-size", 42)));
+                () -> fhir.search(Patient.class, SearchQuery.where("shoe-size", 42)));
 
         assertEquals(400, e.status());
         assertTrue(e.outcome().issue().getFirst().diagnostics().value().contains("shoe-size"));

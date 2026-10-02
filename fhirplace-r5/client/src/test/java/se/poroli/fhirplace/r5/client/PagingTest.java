@@ -28,8 +28,8 @@ class PagingTest {
     private static final URI BASE = TestServers.start("/paged/", exchange -> {
         REQUESTS.incrementAndGet();
         String query = exchange.getRequestURI().getQuery();
-        int page = query != null && query.contains("page=") ? Integer.parseInt(query.replaceAll(".*page=(\\d+).*", "$1"))
-                : 1;
+        int page = query != null && query.contains("page=")
+                ? Integer.parseInt(query.replaceAll(".*page=(\\d+).*", "$1")) : 1;
         URI base = TestServers.base(exchange, "/paged/");
         Bundle.Builder bundle = Bundle.builder().type(BundleType.SEARCHSET)
                 .addEntry(match("p" + page + "a"))
@@ -63,7 +63,7 @@ class PagingTest {
     @Test
     void followsNextLinksAndSkipsIncludesAndOutcomes() {
         REQUESTS.set(0);
-        try (Stream<Patient> all = FhirClient.of(BASE).searchAll(Patient.class, Search.where("family", "x"))) {
+        try (Stream<Patient> all = FhirClient.of(BASE).searchAll(Patient.class, SearchQuery.where("family", "x"))) {
             assertEquals(List.of("p1a", "p1b", "p2a", "p2b", "p3a", "p3b"), all.map(Patient::id).toList());
         }
         assertEquals(3, REQUESTS.get());
@@ -72,7 +72,7 @@ class PagingTest {
     @Test
     void fetchesPagesOnlyWhenNeeded() {
         REQUESTS.set(0);
-        try (Stream<Patient> all = FhirClient.of(BASE).searchAll(Patient.class, Search.where("family", "x"))) {
+        try (Stream<Patient> all = FhirClient.of(BASE).searchAll(Patient.class, SearchQuery.where("family", "x"))) {
             assertEquals(List.of("p1a", "p1b"), all.limit(2).map(Patient::id).toList());
         }
         assertEquals(1, REQUESTS.get());

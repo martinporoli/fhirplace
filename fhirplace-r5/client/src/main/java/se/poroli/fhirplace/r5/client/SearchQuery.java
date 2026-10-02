@@ -19,11 +19,11 @@ import se.poroli.fhirplace.r5.datatypes.FhirDateTime;
  * FHIR search parameters, built immutably and rendered with the correct syntax and escaping.
  *
  * <pre>{@code
- * Search search = Search.where("family", "Chalmers")                     // family=Chalmers
+ * SearchQuery search = SearchQuery.where("family", "Chalmers")                     // family=Chalmers
  *         .and("given:exact", "Peter", "Pete")                           // given:exact=Peter,Pete (OR)
- *         .and("birthdate", Search.ge(LocalDate.of(1970, 1, 1)))          // birthdate=ge1970-01-01
- *         .and("birthdate", Search.lt(LocalDate.of(1980, 1, 1)))          // repeated: AND
- *         .and("identifier", Search.token("http://acme.org/mrn", "123"))  // identifier=http://acme.org/mrn|123
+ *         .and("birthdate", SearchQuery.ge(LocalDate.of(1970, 1, 1)))          // birthdate=ge1970-01-01
+ *         .and("birthdate", SearchQuery.lt(LocalDate.of(1980, 1, 1)))          // repeated: AND
+ *         .and("identifier", SearchQuery.token("http://acme.org/mrn", "123"))  // identifier=http://acme.org/mrn|123
  *         .count(50);
  * }</pre>
  *
@@ -32,14 +32,14 @@ import se.poroli.fhirplace.r5.datatypes.FhirDateTime;
  *
  * @see <a href="https://hl7.org/fhir/R5/search.html">FHIR R5 search</a>
  */
-public final class Search {
+public final class SearchQuery {
 
     private final List<Parameter> parameters;
 
     private record Parameter(String name, String value) {
     }
 
-    private Search(List<Parameter> parameters) {
+    private SearchQuery(List<Parameter> parameters) {
         this.parameters = List.copyOf(parameters);
     }
 
@@ -48,8 +48,8 @@ public final class Search {
      *
      * @return the search
      */
-    public static Search all() {
-        return new Search(List.of());
+    public static SearchQuery all() {
+        return new SearchQuery(List.of());
     }
 
     /**
@@ -59,7 +59,7 @@ public final class Search {
      * @param anyOf the values, any of which may match: strings, numbers, dates or {@link Value}s
      * @return the search
      */
-    public static Search where(String name, Object... anyOf) {
+    public static SearchQuery where(String name, Object... anyOf) {
         return all().and(name, anyOf);
     }
 
@@ -70,7 +70,7 @@ public final class Search {
      * @param anyOf the values, any of which may match: strings, numbers, dates or {@link Value}s
      * @return the new search
      */
-    public Search and(String name, Object... anyOf) {
+    public SearchQuery and(String name, Object... anyOf) {
         Objects.requireNonNull(name, "name");
         if (anyOf.length == 0) {
             throw new IllegalArgumentException("Search parameter " + name + " needs at least one value");
@@ -81,7 +81,7 @@ public final class Search {
         }
         List<Parameter> next = new ArrayList<>(parameters);
         next.add(new Parameter(name, value.toString()));
-        return new Search(next);
+        return new SearchQuery(next);
     }
 
     /**
@@ -90,7 +90,7 @@ public final class Search {
      * @param count the maximum number of matches per page
      * @return the new search
      */
-    public Search count(int count) {
+    public SearchQuery count(int count) {
         return and("_count", count);
     }
 
@@ -100,8 +100,8 @@ public final class Search {
      * @param parameters the parameters to sort by, prefixed with {@code -} for descending order
      * @return the new search
      */
-    public Search sort(String... parameters) {
-        return and("_sort", (Object[]) java.util.Arrays.stream(parameters).map(Search::raw).toArray(Value[]::new));
+    public SearchQuery sort(String... parameters) {
+        return and("_sort", (Object[]) java.util.Arrays.stream(parameters).map(SearchQuery::raw).toArray(Value[]::new));
     }
 
     /**
