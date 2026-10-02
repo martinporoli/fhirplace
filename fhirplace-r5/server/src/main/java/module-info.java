@@ -1,19 +1,15 @@
 /**
- * FHIR R5 RESTful server for MicroProfile runtimes. Applications implement FHIR interactions as CDI beans annotated
- * with {@link se.poroli.fhirplace.r5.server.FhirResource}; this module serves them under the application's Jakarta
- * REST path, following the FHIR RESTful API.
+ * FHIR R5 RESTful server, independent of any web framework. Applications implement FHIR interactions in classes
+ * annotated with {@link se.poroli.fhirplace.r5.server.FhirResource}; {@link se.poroli.fhirplace.r5.server.FhirServer}
+ * serves them. The modules {@code fhirplace-r5-server-jaxrs} (MicroProfile) and {@code fhirplace-r5-server-spring}
+ * (Spring Boot) connect it to a web framework.
  */
 module se.poroli.fhirplace.r5.server {
     requires transitive se.poroli.fhirplace.r5;
     requires transitive se.poroli.fhirplace.r5.operationoutcome;
     requires se.poroli.fhirplace.r5.bundle;
     requires se.poroli.fhirplace.r5.capabilitystatement;
-    requires jakarta.ws.rs;
-    requires jakarta.cdi;
-    requires jakarta.inject;
     requires jakarta.json;
 
     exports se.poroli.fhirplace.r5.server;
-
-    opens se.poroli.fhirplace.r5.server.internal;
 }

@@ -21,6 +21,8 @@
         <module>resources</module>
         <module>serialization-tests</module>
         <module>server</module>
+        <module>server-jaxrs</module>
+        <module>server-spring</module>
         <module>bom</module>
         <module>all</module>
     </modules>

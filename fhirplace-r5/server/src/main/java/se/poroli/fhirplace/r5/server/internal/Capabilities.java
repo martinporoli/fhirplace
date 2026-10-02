@@ -1,10 +1,9 @@
 package se.poroli.fhirplace.r5.server.internal;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.Comparator;
 import se.poroli.fhirplace.r5.capabilitystatement.CapabilityStatement;
 import se.poroli.fhirplace.r5.capabilitystatement.CapabilityStatement.Rest;
@@ -21,44 +20,15 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 import se.poroli.fhirplace.r5.valuesets.ResourceType;
 import se.poroli.fhirplace.r5.valuesets.SearchParamType;
 
-/** Builds the server's CapabilityStatement from the registered handlers. */
-@ApplicationScoped
-public class Capabilities {
+/** Builds the server's CapabilityStatement from its handlers. */
+final class Capabilities {
 
-    private final HandlerRegistry registry;
-    private CapabilityStatement statement;
-
-    /**
-     * Creates the builder.
-     *
-     * @param registry the handlers
-     */
-    @Inject
-    public Capabilities(HandlerRegistry registry) {
-        this.registry = registry;
+    private Capabilities() {
     }
 
-    /** CDI proxy constructor. */
-    protected Capabilities() {
-        this.registry = null;
-    }
-
-    /**
-     * Returns the CapabilityStatement, built once.
-     *
-     * @return the statement
-     */
-    public synchronized CapabilityStatement statement() {
-        if (statement == null) {
-            statement = build();
-        }
-        return statement;
-    }
-
-    private CapabilityStatement build() {
+    static CapabilityStatement of(Collection<Handler> handlers) {
         Rest.Builder rest = Rest.builder().mode(RestfulCapabilityMode.SERVER);
-        for (HandlerRegistry.Registered registered : registry.handlers().values()) {
-            Handler handler = registered.handler();
+        handlers.stream().sorted(Comparator.comparing(Handler::typeName)).forEach(handler -> {
             RestResource.Builder resource = RestResource.builder()
                     .type(ResourceType.fromCode(handler.typeName()))
                     .versioning(handler.method(Interaction.VREAD).isPresent()
@@ -79,7 +49,7 @@ public class Capabilities {
                             .type(searchType(parameter.type()))
                             .build())));
             rest.addResource(resource.build());
-        }
+        });
         return CapabilityStatement.builder()
                 .status(PublicationStatus.ACTIVE)
                 .date(OffsetDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS))

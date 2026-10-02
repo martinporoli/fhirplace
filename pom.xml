@@ -22,6 +22,7 @@
     <modules>
         <module>fhirplace-r5</module>
         <module>examples/quarkus</module>
+        <module>examples/spring-boot</module>
     </modules>
 
     <properties>
@@ -38,6 +39,8 @@
         <jakarta.ws.rs-api.version>3.1.0</jakarta.ws.rs-api.version>
         <jakarta.cdi-api.version>4.0.1</jakarta.cdi-api.version>
         <helidon.version>4.5.5</helidon.version>
+        <spring-boot.version>4.1.1</spring-boot.version>
+        <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
 
         <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
@@ -85,6 +88,21 @@
                 <groupId>jakarta.enterprise</groupId>
                 <artifactId>jakarta.enterprise.cdi-api</artifactId>
                 <version>${jakarta.cdi-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${jakarta.servlet-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-autoconfigure</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-webmvc</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.helidon.microprofile.bundles</groupId>

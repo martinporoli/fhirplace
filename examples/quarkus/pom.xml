@@ -14,7 +14,7 @@
     <artifactId>fhirplace-example-quarkus</artifactId>
 
     <name>FhirPlace Example: Quarkus</name>
-    <description>Reference FHIR server on Quarkus built with fhirplace-r5-server. Tested, never packaged.</description>
+    <description>Reference FHIR server on Quarkus built with fhirplace-r5-server-jaxrs. Tested, never packaged.</description>
 
     <properties>
         <quarkus.platform.version>3.40.1</quarkus.platform.version>
@@ -40,7 +40,7 @@
     <dependencies>
         <dependency>
             <groupId>se.poroli.fhirplace</groupId>
-            <artifactId>fhirplace-r5-server</artifactId>
+            <artifactId>fhirplace-r5-server-jaxrs</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

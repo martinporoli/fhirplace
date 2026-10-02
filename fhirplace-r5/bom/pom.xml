@@ -33,6 +33,16 @@
             </dependency>
             <dependency>
                 <groupId>se.poroli.fhirplace</groupId>
+                <artifactId>fhirplace-r5-server-jaxrs</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>se.poroli.fhirplace</groupId>
+                <artifactId>fhirplace-r5-server-spring</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>se.poroli.fhirplace</groupId>
                 <artifactId>fhirplace-r5-all</artifactId>
                 <type>pom</type>
                 <version>${project.version}</version>

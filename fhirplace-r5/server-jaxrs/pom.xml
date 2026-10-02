@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>se.poroli.fhirplace</groupId>
+        <artifactId>fhirplace-r5-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>fhirplace-r5-server-jaxrs</artifactId>
+
+    <name>FhirPlace R5 Server for Jakarta REST</name>
+    <description>Serves fhirplace-r5-server on MicroProfile and other Jakarta REST + CDI runtimes.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-server</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Provided by the runtime -->
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-server</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-patient</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-observation</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.helidon.microprofile.bundles</groupId>
+            <artifactId>helidon-microprofile-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.parsson</groupId>
+            <artifactId>parsson</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Tests boot a full MicroProfile runtime, which runs on the class path. -->
+                    <useModulePath>false</useModulePath>
+                    <!-- Runs the shared HTTP tests of fhirplace-r5-server against Helidon MP. -->
+                    <dependenciesToScan>
+                        <dependency>se.poroli.fhirplace:fhirplace-r5-server:test-jar:tests</dependency>
+                    </dependenciesToScan>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

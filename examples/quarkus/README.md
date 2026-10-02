@@ -1,6 +1,6 @@
 # FhirPlace on Quarkus
 
-A minimal FHIR R5 server on Quarkus, built with `fhirplace-r5-server`. Storage is in memory; the point is to show
+A minimal FHIR R5 server on Quarkus, built with `fhirplace-r5-server-jaxrs`. Storage is in memory; the point is to show
 how an application uses fhirplace. The build compiles and tests it but never packages or publishes it.
 
 - `PatientHandler` implements every supported interaction for `Patient`: read, vread, create, update, delete and
@@ -8,7 +8,7 @@ how an application uses fhirplace. The build compiles and tests it but never pac
 - `ObservationHandler` implements only read, create and search; fhirplace answers the rest with 405.
 - `application.properties` serves the API under `/fhir`.
 
-Dependencies: `fhirplace-r5-server`, the resource modules the application serves (`fhirplace-r5-patient`,
+Dependencies: `fhirplace-r5-server-jaxrs` (the Jakarta REST adapter of `fhirplace-r5-server`), the resource modules the application serves (`fhirplace-r5-patient`,
 `fhirplace-r5-observation`), and the Quarkus extensions `quarkus-rest` and `quarkus-jsonp`.
 
 Run it from the repository root with `./mvnw install -DskipTests` once, then
