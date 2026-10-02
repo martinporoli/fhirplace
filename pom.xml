@@ -34,6 +34,9 @@
         <parsson.version>1.1.9</parsson.version>
         <yasson.version>3.0.5</yasson.version>
         <xmlunit.version>2.14.0</xmlunit.version>
+        <jakarta.ws.rs-api.version>3.1.0</jakarta.ws.rs-api.version>
+        <jakarta.cdi-api.version>4.0.1</jakarta.cdi-api.version>
+        <helidon.version>4.5.5</helidon.version>
 
         <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
@@ -71,6 +74,21 @@
                 <groupId>org.eclipse</groupId>
                 <artifactId>yasson</artifactId>
                 <version>${yasson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.ws.rs</groupId>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <version>${jakarta.ws.rs-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.enterprise</groupId>
+                <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                <version>${jakarta.cdi-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.helidon.microprofile.bundles</groupId>
+                <artifactId>helidon-microprofile-core</artifactId>
+                <version>${helidon.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.xmlunit</groupId>

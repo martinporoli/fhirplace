@@ -20,6 +20,7 @@
         <module>core</module>
         <module>resources</module>
         <module>serialization-tests</module>
+        <module>server</module>
         <module>bom</module>
         <module>all</module>
     </modules>
