@@ -4,8 +4,13 @@ A minimal FHIR R5 server on Quarkus, built with `fhirplace-r5-server-jaxrs`. Sto
 how an application uses fhirplace. The build compiles and tests it but never packages or publishes it.
 
 - `PatientHandler` implements every supported interaction for `Patient`: read, vread, create, update, delete and
-  search, plus a business rule that is reported as 422.
+  search.
 - `ObservationHandler` implements only read, create and search; fhirplace answers the rest with 405.
+- `Profiles` holds the server's validation rules, written with `fhirplace-r5-validation`: every patient needs a
+  family name and no future birth date; heart rates must be in beats/minute; missing medical record numbers and
+  observation times are warnings. The handlers call `Profiles.PATIENT.validate(patient).throwIfInvalid()`, so clients
+  get 422 with an OperationOutcome that points at the element (`Patient.name[0].family`). Content that breaks the base
+  FHIR rules is rejected by fhirplace before a handler runs.
 - `application.properties` serves the API under `/fhir`.
 
 Dependencies: `fhirplace-r5-server-jaxrs` (the Jakarta REST adapter of `fhirplace-r5-server`), the resource modules the application serves (`fhirplace-r5-patient`,

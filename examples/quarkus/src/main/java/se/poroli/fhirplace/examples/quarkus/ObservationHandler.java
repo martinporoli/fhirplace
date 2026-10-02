@@ -34,6 +34,7 @@ public class ObservationHandler {
     /** {@code POST /fhir/Observation}. */
     @Create
     public Observation create(Observation observation) {
+        Profiles.OBSERVATION.validate(observation).throwIfInvalid();
         return store.create(observation);
     }
 

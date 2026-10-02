@@ -12,7 +12,6 @@ import se.poroli.fhirplace.r5.patient.Patient;
 import se.poroli.fhirplace.r5.server.Create;
 import se.poroli.fhirplace.r5.server.DateParam;
 import se.poroli.fhirplace.r5.server.Delete;
-import se.poroli.fhirplace.r5.server.FhirException;
 import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.Id;
 import se.poroli.fhirplace.r5.server.Read;
@@ -28,7 +27,7 @@ import se.poroli.fhirplace.r5.server.VersionId;
 /**
  * Serves {@code Patient} with all interactions fhirplace supports. Everything FHIR-specific in HTTP, such as status
  * codes, headers, content negotiation and OperationOutcome errors, is done by the fhirplace server; this class only
- * holds the application logic.
+ * holds the application logic, including which profile new and changed patients must follow ({@link Profiles}).
  */
 @Component
 @FhirResource(Patient.class)
@@ -52,14 +51,14 @@ public class PatientHandler {
     /** {@code POST /fhir/Patient}: answered with 201, {@code Location} and {@code ETag}. */
     @Create
     public Patient create(Patient patient) {
-        requireName(patient);
+        Profiles.PATIENT.validate(patient).throwIfInvalid();   // 422 with the profile's OperationOutcome
         return store.create(patient);
     }
 
     /** {@code PUT /fhir/Patient/{id}}: updates, or creates the patient under the client's id. */
     @Update
     public Saved<Patient> update(@Id String id, Patient patient) {
-        requireName(patient);
+        Profiles.PATIENT.validate(patient).throwIfInvalid();
         boolean exists = store.exists(id);
         Patient stored = store.save(id, patient);
         return exists ? Saved.updated(stored) : Saved.created(stored);
@@ -86,13 +85,6 @@ public class PatientHandler {
                         || identifier.anyOf().stream().anyMatch(token -> hasIdentifier(patient, token)))
                 .filter(patient -> birthdate.stream()
                         .allMatch(date -> date.anyOf().stream().anyMatch(value -> bornIn(patient, value))));
-    }
-
-    /** A business rule: rejected with 422 Unprocessable Entity and an OperationOutcome. */
-    private static void requireName(Patient patient) {
-        if (patient.name().isEmpty()) {
-            throw FhirException.unprocessable("A patient must have a name");
-        }
     }
 
     private static boolean hasFamily(Patient patient, String family) {

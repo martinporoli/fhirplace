@@ -6,8 +6,13 @@ to show how an application uses fhirplace. The build compiles and tests it but n
 - `FhirApplication` is a plain `@SpringBootApplication`. The fhirplace auto-configuration serves every
   `@FhirResource` bean under `fhirplace.server.path` (`/fhir`, see `application.properties`).
 - `PatientHandler` implements every supported interaction for `Patient`: read, vread, create, update, delete and
-  search, plus a business rule that is reported as 422.
+  search.
 - `ObservationHandler` implements only read, create and search; fhirplace answers the rest with 405.
+- `Profiles` holds the server's validation rules, written with `fhirplace-r5-validation`: every patient needs a
+  family name and no future birth date; heart rates must be in beats/minute; missing medical record numbers and
+  observation times are warnings. The handlers call `Profiles.PATIENT.validate(patient).throwIfInvalid()`, so clients
+  get 422 with an OperationOutcome that points at the element (`Patient.name[0].family`). Content that breaks the base
+  FHIR rules is rejected by fhirplace before a handler runs.
 
 The handlers are the same as in the Quarkus example except for `@Component` instead of `@ApplicationScoped`.
 
