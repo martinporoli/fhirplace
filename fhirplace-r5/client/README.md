@@ -71,4 +71,5 @@ HttpResponse<Patient> response = httpClient.send(
 **Dependencies:** `fhirplace-r5-core`, the Bundle and OperationOutcome modules, and the Jakarta JSON Processing API.
 Add an implementation such as Parsson unless your runtime provides one.
 
-Tested against a real fhirplace server in-process, and against a paging stub for `searchAll`.
+Tested against a real fhirplace server in-process, including paging with `count(...)`, and against stub servers for
+paging edge cases and errors that are not FHIR.

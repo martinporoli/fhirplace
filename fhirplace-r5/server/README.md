@@ -26,7 +26,11 @@ The server takes care of the FHIR HTTP rules:
 - `If-Match`, `If-None-Match`, `If-Modified-Since` and `Prefer`;
 - FHIR JSON and XML with `Accept`, `_format` and `_pretty`;
 - search parameters with OR (`a,b`), AND (repeated), prefixes and escaping, and searchset Bundles;
-- errors as `OperationOutcome`; handlers throw `FhirException`, e.g. `FhirException.notFound("Patient", id)`;
+- paging with `_count` and `_offset` over the handler's results, with `next` and `previous` links; other result
+  parameters such as `_sort` are rejected by name, or ignored with `Prefer: handling=lenient`;
+- errors as `OperationOutcome`; handlers throw `FhirException`, e.g. `FhirException.notFound("Patient", id)`. Any
+  other exception from a handler is logged with `System.Logger` and answered with 500 and an OperationOutcome that
+  does not reveal it;
 - a CapabilityStatement at `metadata`, generated from the handlers.
 
 Invalid handlers are reported when the server is built, which makes application startup fail.

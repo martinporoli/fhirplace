@@ -56,6 +56,7 @@ public class PatientHandler {
     /** Patients with these ids exist only to show custom error responses. */
     static final String ARCHIVED = "archived";
     static final String BUSY = "busy";
+    static final String CRASH = "crash";
 
     @Read
     public Optional<Patient> read(@Id String id) {
@@ -68,6 +69,9 @@ public class PatientHandler {
                             .diagnostics(FhirString.of("Patient/archived was archived; ask the records office"))
                             .build())
                     .build());
+        }
+        if (id.equals(CRASH)) {
+            throw new IllegalStateException("Database password expired for user fhir");   // must not reach clients
         }
         if (id.equals(BUSY)) {
             throw new FhirException(503, OperationOutcome.builder()

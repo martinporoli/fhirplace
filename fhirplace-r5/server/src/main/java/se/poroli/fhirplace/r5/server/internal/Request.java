@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import se.poroli.fhirplace.r5.server.FhirException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 
 /** A {@link FhirRequest} with decoded path segments and parameters, and case-insensitive headers. */
@@ -87,11 +88,19 @@ final class Request {
 
     /** Decodes form encoding, where {@code +} is a space. */
     private static String decode(String value) {
-        return URLDecoder.decode(value, StandardCharsets.UTF_8);
+        try {
+            return URLDecoder.decode(value, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            throw FhirException.invalid("Malformed URL encoding in '" + value + "'");
+        }
     }
 
     /** Decodes a path segment, where {@code +} is itself. */
     private static String decodePath(String segment) {
-        return URLDecoder.decode(segment.replace("+", "%2B"), StandardCharsets.UTF_8);
+        try {
+            return URLDecoder.decode(segment.replace("+", "%2B"), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            throw FhirException.invalid("Malformed URL encoding in '" + segment + "'");
+        }
     }
 }

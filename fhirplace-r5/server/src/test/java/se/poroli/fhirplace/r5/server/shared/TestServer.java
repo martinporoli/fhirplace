@@ -65,7 +65,9 @@ public final class TestServer {
     /** Sends a request; {@code headers} are name/value pairs. JSON bodies are sent as FHIR JSON by default. */
     public static Reply send(String method, String path, String body, String... headers) {
         try {
-            HttpURLConnection connection = (HttpURLConnection) base().resolve(path).toURL().openConnection();
+            // Appended as is, without URI parsing, so tests can also send malformed URLs.
+            @SuppressWarnings("deprecation")
+            HttpURLConnection connection = (HttpURLConnection) new java.net.URL(base() + path).openConnection();
             connection.setRequestMethod(method);
             boolean contentType = false;
             for (int i = 0; i < headers.length; i += 2) {

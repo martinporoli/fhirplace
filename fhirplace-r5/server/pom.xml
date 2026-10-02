@@ -118,6 +118,7 @@
                             <excludes>
                                 <exclude>META-INF/services/**</exclude>
                                 <exclude>se/poroli/fhirplace/r5/server/jdk/**</exclude>
+                                <exclude>se/poroli/fhirplace/r5/server/engine/**</exclude>
                                 <exclude>se/poroli/fhirplace/r5/server/internal/**</exclude>
                             </excludes>
                         </configuration>

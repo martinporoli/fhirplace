@@ -55,6 +55,29 @@ public class FormatTest {
     }
 
     @Test
+    void unsupportedAcceptIsNotAcceptable() {
+        TestServer.Reply reply = TestServer.get("metadata", "Accept", "text/html");
+
+        assertEquals(406, reply.status());
+        assertEquals("not-supported", Fixtures.outcome(reply).issue().getFirst().code().valueAsString());
+    }
+
+    @Test
+    void unsupportedContentTypesAreRejected() {
+        String patient = FhirJson.write(Fixtures.patient(Fixtures.uniqueFamily()));
+
+        TestServer.Reply plain = TestServer.post("Patient", patient, "Content-Type", "text/plain");
+        TestServer.Reply charset = TestServer.post("Patient", patient,
+                "Content-Type", "application/fhir+json;charset=no-such-charset");
+        TestServer.Reply jsonSearch = TestServer.post("Patient/_search", "{}", "Content-Type", "application/json");
+
+        assertEquals(415, plain.status());
+        assertEquals("not-supported", Fixtures.outcome(plain).issue().getFirst().code().valueAsString());
+        assertEquals(415, charset.status());
+        assertEquals(415, jsonSearch.status());
+    }
+
+    @Test
     void errorsFollowTheRequestedFormat() {
         TestServer.Reply reply = TestServer.get("Patient/missing", "Accept", "application/fhir+xml");
 

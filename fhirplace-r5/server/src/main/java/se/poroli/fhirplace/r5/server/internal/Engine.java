@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -34,6 +35,7 @@ import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.FhirResponse;
 import se.poroli.fhirplace.r5.server.FhirResult;
+import se.poroli.fhirplace.r5.server.FhirServer;
 import se.poroli.fhirplace.r5.server.Saved;
 import se.poroli.fhirplace.r5.validation.ValidationException;
 
@@ -41,6 +43,7 @@ import se.poroli.fhirplace.r5.validation.ValidationException;
 public final class Engine {
 
     private static final java.util.regex.Pattern ID = java.util.regex.Pattern.compile("[A-Za-z0-9\\-.]{1,64}");
+    private static final System.Logger LOG = System.getLogger(FhirServer.class.getName());
     private static final DateTimeFormatter HTTP_DATE =
             DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US).withZone(ZoneOffset.UTC);
 
@@ -164,16 +167,26 @@ public final class Engine {
      * @return the serialized response
      */
     public FhirResponse handle(FhirRequest fhirRequest) {
-        Request request = new Request(fhirRequest);
         Formats.Format format = Formats.Format.DEFAULT;
         Result result;
         try {
+            Request request = new Request(fhirRequest);
             format = Formats.negotiate(request);
             result = route(request);
         } catch (FhirException e) {
             result = new Result(e.status(), new LinkedHashMap<>(e.headers()), e.outcome());
         } catch (ValidationException e) {
             result = new Result(e.status(), e.result().toOperationOutcome());
+        } catch (RuntimeException e) {
+            LOG.log(System.Logger.Level.ERROR, "FHIR request " + fhirRequest.method() + " " + fhirRequest.path()
+                    + " failed", e);
+            result = new Result(500, OperationOutcome.builder()
+                    .addIssue(OperationOutcome.Issue.builder()
+                            .severity(IssueSeverity.FATAL)
+                            .code(IssueType.EXCEPTION)
+                            .diagnostics(FhirString.of("Internal server error"))
+                            .build())
+                    .build());
         }
         Map<String, List<String>> headers = new LinkedHashMap<>(result.headers());
         byte[] body = new byte[0];
@@ -336,16 +349,25 @@ public final class Engine {
     private Result search(Request request, Registered handler, String type, Map<String, List<String>> parameters) {
         HandlerMethod search = handler.require(Interaction.SEARCH);
         boolean lenient = "lenient".equals(request.preferences().get("handling"));
+        Integer count = pagingParameter(parameters, "_count");
+        int offset = Objects.requireNonNullElse(pagingParameter(parameters, "_offset"), 0);
         SearchParameters.Bound bound = SearchParameters.bind(search, parameters, lenient, request.original);
         List<Resource> matches = results(search.invoke(handler.instance(), bound.arguments()));
-        String self = request.base + type + (bound.used().isEmpty() ? "" : "?" + bound.query());
+        int from = Math.min(offset, matches.size());
+        int to = count == null ? matches.size() : (int) Math.min((long) from + count, matches.size());
         Bundle.Builder bundle = Bundle.builder()
                 .id(UUID.randomUUID().toString())
                 .type(BundleType.SEARCHSET)
                 .timestamp(FhirInstant.of(java.time.OffsetDateTime.now(ZoneOffset.UTC)))
                 .total(FhirUnsignedInt.of(matches.size()))
-                .addLink(Bundle.Link.builder().relation(LinkRelationTypes.SELF).url(FhirUri.of(self)).build());
-        for (Resource match : matches) {
+                .addLink(link(LinkRelationTypes.SELF, request, type, bound, count, offset));
+        if (count != null && count > 0 && to < matches.size()) {
+            bundle.addLink(link(LinkRelationTypes.NEXT, request, type, bound, count, to));
+        }
+        if (count != null && count > 0 && from > 0) {
+            bundle.addLink(link(LinkRelationTypes.PREVIOUS, request, type, bound, count, Math.max(0, from - count)));
+        }
+        for (Resource match : matches.subList(from, to)) {
             bundle.addEntry(Bundle.Entry.builder()
                     .fullUrl(match.id() == null ? null : FhirUri.of(request.base + type + "/" + match.id()))
                     .resource(match)
@@ -353,6 +375,40 @@ public final class Engine {
                     .build());
         }
         return new Result(200, bundle.build());
+    }
+
+    /** Returns a non-negative paging parameter, {@code _count} or {@code _offset}, or {@code null} if absent. */
+    private static Integer pagingParameter(Map<String, List<String>> parameters, String name) {
+        List<String> values = parameters.get(name);
+        if (values == null || values.isEmpty()) {
+            return null;
+        }
+        if (values.size() > 1) {
+            throw FhirException.invalid(name + " may appear only once");
+        }
+        try {
+            int value = Integer.parseInt(values.getFirst());
+            if (value < 0) {
+                throw new NumberFormatException();
+            }
+            return value;
+        } catch (NumberFormatException e) {
+            throw FhirException.invalid(name + " must be a non-negative integer, not '" + values.getFirst() + "'");
+        }
+    }
+
+    /** Returns a searchset link with the search's parameters and the page's {@code _count} and {@code _offset}. */
+    private static Bundle.Link link(LinkRelationTypes relation, Request request, String type,
+            SearchParameters.Bound bound, Integer count, int offset) {
+        StringBuilder query = new StringBuilder(bound.query());
+        if (count != null) {
+            query.append(query.isEmpty() ? "" : "&").append("_count=").append(count);
+        }
+        if (offset > 0) {
+            query.append(query.isEmpty() ? "" : "&").append("_offset=").append(offset);
+        }
+        String url = request.base + type + (query.isEmpty() ? "" : "?" + query);
+        return Bundle.Link.builder().relation(relation).url(FhirUri.of(url)).build();
     }
 
     /** The parameters of {@code POST [type]/_search}: the URL's and the form body's. */

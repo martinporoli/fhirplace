@@ -29,6 +29,13 @@ public class ContentValidationTest {
     }
 
     @Test
+    void malformedUrlEncodingIsABadRequest() {
+        // Some web servers reject these before fhirplace sees them; either way the answer is 400.
+        assertEquals(400, TestServer.get("Patient?family=%ZZ").status());
+        assertEquals(400, TestServer.get("Patient/a%ZZ").status());
+    }
+
+    @Test
     void unknownElementsAreABadRequest() {
         TestServer.Reply reply = TestServer.post("Patient", "{\"resourceType\":\"Patient\",\"shoeSize\":42}");
 

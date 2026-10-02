@@ -97,6 +97,73 @@ public class SearchTest {
     }
 
     @Test
+    void countPagesTheMatchesWithNextAndPreviousLinks() {
+        String family = Fixtures.uniqueFamily();
+        List<String> all = java.util.stream.IntStream.range(0, 5)
+                .mapToObj(i -> Fixtures.created(Fixtures.patient(family)).id())
+                .sorted()
+                .toList();
+
+        Bundle first = FhirJson.read(TestServer.get("Patient?family=" + family + "&_count=2").body(), Bundle.class);
+        Bundle second = FhirJson.read(TestServer.get(relative(link(first, "next"))).body(), Bundle.class);
+        Bundle third = FhirJson.read(TestServer.get(relative(link(second, "next"))).body(), Bundle.class);
+
+        assertEquals(5, first.total().value());
+        assertEquals(all.subList(0, 2), entryIds(first));
+        assertEquals(all.subList(2, 4), entryIds(second));
+        assertEquals(all.subList(4, 5), entryIds(third));
+        assertEquals(null, link(third, "next"));
+        assertEquals(null, link(first, "previous"));
+        assertEquals(relative(link(second, "previous")), relative(link(first, "self")));
+    }
+
+    @Test
+    void pagingParametersAreValidated() {
+        String family = Fixtures.uniqueFamily();
+        Fixtures.created(Fixtures.patient(family));
+
+        Bundle beyond = FhirJson.read(TestServer.get("Patient?family=" + family + "&_count=2&_offset=10").body(),
+                Bundle.class);
+        Bundle countOnly = FhirJson.read(TestServer.get("Patient?family=" + family + "&_count=0").body(),
+                Bundle.class);
+
+        assertEquals(List.of(), entryIds(beyond));
+        assertEquals(1, beyond.total().value());
+        assertEquals(List.of(), entryIds(countOnly));
+        assertEquals(1, countOnly.total().value());
+        assertEquals(null, link(countOnly, "next"));
+        assertEquals(400, TestServer.get("Patient?_count=abc").status());
+        assertEquals(400, TestServer.get("Patient?_count=-1").status());
+    }
+
+    @Test
+    void unsupportedResultParametersAreNamedOrIgnoredWhenLenient() {
+        TestServer.Reply strict = TestServer.get("Patient?_sort=family");
+        TestServer.Reply lenient = TestServer.get("Patient?_sort=family&family=" + Fixtures.uniqueFamily(),
+                "Prefer", "handling=lenient");
+
+        assertEquals(400, strict.status());
+        assertTrue(Fixtures.diagnostics(strict).contains("result parameter '_sort' is not supported"));
+        assertEquals(200, lenient.status());
+    }
+
+    private static String link(Bundle bundle, String relation) {
+        return bundle.link().stream()
+                .filter(l -> relation.equals(l.relation().valueAsString()))
+                .map(l -> l.url().value())
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static String relative(String url) {
+        return url.substring(TestServer.base().toString().length());
+    }
+
+    private static List<String> entryIds(Bundle bundle) {
+        return bundle.entry().stream().map(e -> e.resource().id()).toList();
+    }
+
+    @Test
     void invalidValuesAndRepetitionsAreRejected() {
         assertEquals(400, TestServer.get("Patient?birthdate=yesterday").status());
         assertEquals(400, TestServer.get("Patient?family=a&family=b").status());

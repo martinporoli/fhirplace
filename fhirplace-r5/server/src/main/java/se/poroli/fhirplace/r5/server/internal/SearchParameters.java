@@ -21,7 +21,11 @@ import se.poroli.fhirplace.r5.server.TokenParam;
 final class SearchParameters {
 
     /** Parameters that control the response rather than the search. */
-    private static final Set<String> CONTROL = Set.of("_format", "_pretty");
+    private static final Set<String> CONTROL = Set.of("_format", "_pretty", "_count", "_offset");
+
+    /** Standard result parameters the server does not implement: rejected in strict mode, ignored when lenient. */
+    private static final Set<String> UNSUPPORTED_RESULT = Set.of("_sort", "_summary", "_elements", "_include",
+            "_revinclude", "_total", "_contained", "_containedType", "_maxresults", "_graph");
 
     private SearchParameters() {
     }
@@ -75,6 +79,10 @@ final class SearchParameters {
         });
         if (!lenient) {
             for (String name : byName.keySet()) {
+                if (UNSUPPORTED_RESULT.contains(name)) {
+                    throw FhirException.invalid("The result parameter '" + name + "' is not supported by this "
+                            + "server. Send 'Prefer: handling=lenient' to ignore unsupported parameters.");
+                }
                 if (!declared.contains(name)) {
                     throw FhirException.invalid("Unknown search parameter '" + name + "'. Supported: "
                             + new java.util.TreeSet<>(declared)

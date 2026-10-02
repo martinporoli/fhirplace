@@ -93,6 +93,20 @@ class FhirClientTest {
     }
 
     @Test
+    void searchAllPagesThroughAFhirplaceServer() {
+        String family = unique();
+        List<String> created = java.util.stream.IntStream.range(0, 5)
+                .mapToObj(i -> fhir.create(patient(family)).body().id())
+                .sorted()
+                .toList();
+
+        try (var all = fhir.searchAll(Patient.class, SearchQuery.where("family", family).count(2))) {
+            assertEquals(created, all.map(Patient::id).toList());
+        }
+        assertEquals(2, fhir.search(Patient.class, SearchQuery.where("family", family).count(2)).body().entry().size());
+    }
+
+    @Test
     void searchErrorsAreReported() {
         FhirClientException e = assertThrows(FhirClientException.class,
                 () -> fhir.search(Patient.class, SearchQuery.where("shoe-size", 42)));
