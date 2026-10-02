@@ -9,14 +9,16 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import se.poroli.fhirplace.r5.Resource;
+import se.poroli.fhirplace.r5.internal.Errors;
 
 /**
  * Reads resources from FHIR XML using StAX ({@code javax.xml.stream}) and writes them as FHIR XML.
  *
  * <p>Resource types are resolved from the element name: resource {@code X} must be available as module
  * {@code se.poroli.fhirplace.r5.<x>}, for example by depending on {@code fhirplace-r5-patient} for {@code Patient}.
- * Reading rejects elements the model does not know and values that violate the model's constraints with an
- * {@link IllegalArgumentException} that names the offending element. DTDs and external entities are not processed.
+ * Reading rejects malformed XML, elements the model does not know and values that violate the model's constraints
+ * with a {@link se.poroli.fhirplace.r5.FhirFormatException} that tells what is wrong and where. DTDs and external
+ * entities are not processed.
  *
  * @see <a href="https://hl7.org/fhir/R5/xml.html">FHIR R5 XML representation</a>
  */
@@ -59,7 +61,7 @@ public final class FhirXml {
      *
      * @param xml the XML text of one resource
      * @return the resource, of the class named by its root element
-     * @throws IllegalArgumentException if the text is not a valid FHIR resource for this model
+     * @throws se.poroli.fhirplace.r5.FhirFormatException if the text is not a valid FHIR resource for this model
      */
     public static Resource read(String xml) {
         return read(new StringReader(Objects.requireNonNull(xml, "xml")));
@@ -72,13 +74,13 @@ public final class FhirXml {
      * @param type the expected resource class
      * @param <T> the resource type
      * @return the resource
-     * @throws IllegalArgumentException if the text is not a valid FHIR resource of that type
+     * @throws se.poroli.fhirplace.r5.FhirFormatException if the text is not a valid FHIR resource of that type
      */
     public static <T extends Resource> T read(String xml, Class<T> type) {
         Resource resource = read(xml);
         if (!type.isInstance(resource)) {
-            throw new IllegalArgumentException("Expected a " + type.getSimpleName() + " but got a "
-                    + resource.getClass().getSimpleName());
+            throw Errors.structure(resource.getClass().getSimpleName(), "expected a " + type.getSimpleName()
+                    + " but got a " + resource.getClass().getSimpleName());
         }
         return type.cast(resource);
     }
@@ -88,7 +90,7 @@ public final class FhirXml {
      *
      * @param reader the source of one resource
      * @return the resource, of the class named by its root element
-     * @throws IllegalArgumentException if the content is not a valid FHIR resource for this model
+     * @throws se.poroli.fhirplace.r5.FhirFormatException if the content is not a valid FHIR resource for this model
      */
     public static Resource read(Reader reader) {
         try {
@@ -99,7 +101,7 @@ public final class FhirXml {
                 xml.close();
             }
         } catch (XMLStreamException e) {
-            throw new IllegalArgumentException("Invalid XML: " + e.getMessage(), e);
+            throw Errors.syntax("Invalid XML: " + e.getMessage(), e);
         }
     }
 
@@ -110,12 +112,12 @@ public final class FhirXml {
      * @param reader the reader
      * @return the resource, of the class named by its element
      * @throws XMLStreamException if the XML is malformed
-     * @throws IllegalArgumentException if the content is not a valid FHIR resource for this model
+     * @throws se.poroli.fhirplace.r5.FhirFormatException if the content is not a valid FHIR resource for this model
      */
     public static Resource read(XMLStreamReader reader) throws XMLStreamException {
         while (reader.getEventType() != XMLStreamConstants.START_ELEMENT) {
             if (!reader.hasNext()) {
-                throw new IllegalArgumentException("No resource element");
+                throw Errors.syntax("No resource element", null);
             }
             reader.next();
         }

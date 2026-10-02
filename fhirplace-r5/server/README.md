@@ -31,6 +31,23 @@ The server takes care of the FHIR HTTP rules:
 
 Invalid handlers are reported when the server is built, which makes application startup fail.
 
+## Validation
+
+Request bodies that cannot be read are answered automatically: 400 for malformed or misstructured content, 422 for
+content that breaks the FHIR rules (a missing required element, an invalid date, a code outside a required value set),
+each with an OperationOutcome issue that has the right code and an `expression` pointing at the element.
+
+Profiles and business rules are yours, written with [fhirplace-r5-validation](../validation) and called where you
+want them:
+
+```java
+@Create
+public Patient create(Patient patient) {
+    SE_PATIENT.validate(patient).throwIfInvalid();      // 422 with the validator's OperationOutcome
+    return store.save(patient);
+}
+```
+
 ## Custom responses
 
 Throw `FhirException` with your own `OperationOutcome`, status and headers to answer with a specific error:

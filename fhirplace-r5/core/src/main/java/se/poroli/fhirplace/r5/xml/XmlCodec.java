@@ -12,6 +12,7 @@ import se.poroli.fhirplace.r5.Resource;
 import se.poroli.fhirplace.r5.datatypes.Extension;
 import se.poroli.fhirplace.r5.datatypes.FhirXhtml;
 import se.poroli.fhirplace.r5.datatypes.PrimitiveType;
+import se.poroli.fhirplace.r5.internal.Errors;
 import se.poroli.fhirplace.r5.internal.FhirTypes;
 import se.poroli.fhirplace.r5.internal.ModelInfo;
 import se.poroli.fhirplace.r5.internal.Property;
@@ -146,8 +147,14 @@ final class XmlCodec {
     static Resource readResource(XMLStreamReader r, String path) throws XMLStreamException {
         requireFhirNamespace(r, path);
         String resourceType = r.getLocalName();
-        Class<? extends Resource> type = FhirTypes.resourceClass(resourceType);
-        return (Resource) readComplex(r, type, path.isEmpty() ? resourceType : path, true);
+        String resourcePath = path.isEmpty() ? resourceType : path;
+        Class<? extends Resource> type;
+        try {
+            type = FhirTypes.resourceClass(resourceType);
+        } catch (IllegalArgumentException e) {
+            throw Errors.structure(resourcePath, e.getMessage());
+        }
+        return (Resource) readComplex(r, type, resourcePath, true);
     }
 
     private static Object readComplex(XMLStreamReader r, Class<?> type, String path, boolean resource)
@@ -162,18 +169,20 @@ final class XmlCodec {
             String name = r.getAttributeLocalName(i);
             Property property = info.property(name);
             if (property == null || property.kind() != Property.Kind.STRING || (resource && name.equals("id"))) {
-                throw new IllegalArgumentException(path + ": unknown attribute '" + name + "'");
+                throw Errors.structure(path, "unknown attribute '" + name + "'");
             }
             values[property.index()] = r.getAttributeValue(i);
         }
         while (r.nextTag() == XMLStreamConstants.START_ELEMENT) {
             String name = r.getLocalName();
-            String elementPath = path + "." + name;
             ModelInfo.Resolved resolved = info.resolve(name);
             if (resolved == null) {
-                throw new IllegalArgumentException(path + ": unknown element '" + name + "'");
+                throw Errors.structure(path, "unknown element '" + name + "'");
             }
             Property property = resolved.property();
+            String elementPath = path + "." + name + (property.repeating()
+                    ? "[" + (values[property.index()] == null ? 0 : ((List<?>) values[property.index()]).size()) + "]"
+                    : "");
             if (property.kind() != Property.Kind.XHTML) {
                 requireFhirNamespace(r, path);
             }
@@ -187,8 +196,7 @@ final class XmlCodec {
                 }
                 list.add(value);
             } else if (values[property.index()] != null) {
-                throw new IllegalArgumentException(elementPath + ": repeated, but " + property.name()
-                        + " allows at most one value");
+                throw Errors.structure(elementPath, "repeated, but " + property.name() + " allows at most one value");
             } else {
                 values[property.index()] = value;
             }
@@ -196,7 +204,7 @@ final class XmlCodec {
         try {
             return info.create(values);
         } catch (IllegalArgumentException | NullPointerException e) {
-            throw new IllegalArgumentException(path + ": " + e.getMessage(), e);
+            throw Errors.fromModel(path, e);
         }
     }
 
@@ -208,11 +216,11 @@ final class XmlCodec {
         return switch (kind) {
             case STRING -> {
                 if (!resource) {
-                    throw new IllegalArgumentException(path + ": '" + property.name() + "' must be an attribute");
+                    throw Errors.structure(path, "'" + property.name() + "' must be an attribute");
                 }
                 String value = r.getAttributeValue(null, "value");
                 if (r.nextTag() != XMLStreamConstants.END_ELEMENT) {
-                    throw new IllegalArgumentException(path + ": unexpected child element " + r.getLocalName());
+                    throw Errors.structure(path, "unexpected child element " + r.getLocalName());
                 }
                 yield value;
             }
@@ -220,17 +228,17 @@ final class XmlCodec {
             case COMPLEX -> readComplex(r, type, path, false);
             case RESOURCE -> {
                 if (r.nextTag() != XMLStreamConstants.START_ELEMENT) {
-                    throw new IllegalArgumentException(path + ": expected a resource");
+                    throw Errors.structure(path, "expected a resource");
                 }
                 Resource nested = readResource(r, path);
                 if (r.nextTag() != XMLStreamConstants.END_ELEMENT) {
-                    throw new IllegalArgumentException(path + ": expected exactly one resource");
+                    throw Errors.structure(path, "expected exactly one resource");
                 }
                 yield nested;
             }
             case XHTML -> {
                 if (!XHTML_NS.equals(r.getNamespaceURI())) {
-                    throw new IllegalArgumentException(path + ": div must be in the XHTML namespace");
+                    throw Errors.structure(path, "div must be in the XHTML namespace");
                 }
                 yield FhirXhtml.of(captureXhtml(r));
             }
@@ -250,25 +258,25 @@ final class XmlCodec {
             switch (r.getAttributeLocalName(i)) {
                 case "id" -> id = r.getAttributeValue(i);
                 case "value" -> value = r.getAttributeValue(i);
-                default -> throw new IllegalArgumentException(
-                        path + ": unknown attribute '" + r.getAttributeLocalName(i) + "'");
+                default -> throw Errors.structure(path, "unknown attribute '" + r.getAttributeLocalName(i) + "'");
             }
         }
         List<Extension> extensions = null;
         while (r.nextTag() == XMLStreamConstants.START_ELEMENT) {
             requireFhirNamespace(r, path);
             if (!r.getLocalName().equals("extension")) {
-                throw new IllegalArgumentException(path + ": unknown element '" + r.getLocalName() + "'");
+                throw Errors.structure(path, "unknown element '" + r.getLocalName() + "'");
             }
             if (extensions == null) {
                 extensions = new ArrayList<>();
             }
-            extensions.add((Extension) readComplex(r, Extension.class, path + ".extension", false));
+            extensions.add((Extension) readComplex(r, Extension.class,
+                    path + ".extension[" + extensions.size() + "]", false));
         }
         try {
             return FhirTypes.primitive(type, property.enumType(), id, extensions, value);
         } catch (IllegalArgumentException | NullPointerException | java.time.DateTimeException e) {
-            throw new IllegalArgumentException(path + ": " + e.getMessage(), e);
+            throw Errors.fromModel(path, e);
         }
     }
 
@@ -343,8 +351,7 @@ final class XmlCodec {
 
     private static void requireFhirNamespace(XMLStreamReader r, String path) {
         if (!FHIR_NS.equals(r.getNamespaceURI())) {
-            throw new IllegalArgumentException((path.isEmpty() ? "" : path + ": ") + "element '" + r.getLocalName()
-                    + "' is not in the FHIR namespace " + FHIR_NS);
+            throw Errors.structure(path, "element '" + r.getLocalName() + "' is not in the FHIR namespace " + FHIR_NS);
         }
     }
 }

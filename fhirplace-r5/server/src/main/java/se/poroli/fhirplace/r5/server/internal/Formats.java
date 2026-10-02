@@ -15,9 +15,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Locale;
 import java.util.Map;
+import se.poroli.fhirplace.r5.FhirFormatException;
 import se.poroli.fhirplace.r5.Resource;
+import se.poroli.fhirplace.r5.datatypes.FhirString;
 import se.poroli.fhirplace.r5.json.FhirJson;
+import se.poroli.fhirplace.r5.operationoutcome.IssueSeverity;
 import se.poroli.fhirplace.r5.operationoutcome.IssueType;
+import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
 import se.poroli.fhirplace.r5.server.FhirException;
 import se.poroli.fhirplace.r5.xml.FhirXml;
 
@@ -126,9 +130,34 @@ final class Formats {
         Reader reader = new InputStreamReader(new ByteArrayInputStream(body), charset(contentType));
         try {
             return xml ? FhirXml.read(reader) : FhirJson.read(reader);
-        } catch (IllegalArgumentException e) {
-            throw FhirException.invalid("Invalid FHIR content: " + e.getMessage());
+        } catch (FhirFormatException e) {
+            throw invalidContent(e);
         }
+    }
+
+    /**
+     * Answers content that cannot be read: 400 for malformed or misstructured content, 422 for content that breaks the
+     * specification's rules, with an issue that tells what and where.
+     */
+    private static FhirException invalidContent(FhirFormatException e) {
+        int status = switch (e.problem()) {
+            case SYNTAX, STRUCTURE -> 400;
+            case REQUIRED, VALUE -> 422;
+        };
+        IssueType code = switch (e.problem()) {
+            case SYNTAX -> IssueType.INVALID;
+            case STRUCTURE -> IssueType.STRUCTURE;
+            case REQUIRED -> IssueType.REQUIRED;
+            case VALUE -> IssueType.VALUE;
+        };
+        OperationOutcome.Issue.Builder issue = OperationOutcome.Issue.builder()
+                .severity(IssueSeverity.ERROR)
+                .code(code)
+                .diagnostics(FhirString.of(e.detail()));
+        if (e.expression() != null) {
+            issue.addExpression(FhirString.of(e.expression()));
+        }
+        return new FhirException(status, OperationOutcome.builder().addIssue(issue.build()).build());
     }
 
     /** Writes a resource in the negotiated format as UTF-8. */

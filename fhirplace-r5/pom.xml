@@ -21,6 +21,7 @@
         <module>resources</module>
         <module>serialization-tests</module>
         <module>client</module>
+        <module>validation</module>
         <module>server</module>
         <module>server-jaxrs</module>
         <module>server-jaxrs-quarkus-tests</module>

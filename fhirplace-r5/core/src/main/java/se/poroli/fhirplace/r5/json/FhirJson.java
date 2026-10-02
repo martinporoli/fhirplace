@@ -11,14 +11,15 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Objects;
 import se.poroli.fhirplace.r5.Resource;
+import se.poroli.fhirplace.r5.internal.Errors;
 
 /**
  * Reads and writes resources in the FHIR JSON format using Jakarta JSON Processing.
  *
  * <p>Resource types are resolved from {@code resourceType}: resource {@code X} must be available as module
  * {@code se.poroli.fhirplace.r5.<x>}, for example by depending on {@code fhirplace-r5-patient} for {@code Patient}.
- * Reading rejects elements the model does not know and values that violate the model's constraints with an
- * {@link IllegalArgumentException} that names the offending element.
+ * Reading rejects malformed JSON, elements the model does not know and values that violate the model's constraints
+ * with a {@link se.poroli.fhirplace.r5.FhirFormatException} that tells what is wrong and where.
  *
  * @see <a href="https://hl7.org/fhir/R5/json.html">FHIR R5 JSON representation</a>
  */
@@ -68,7 +69,7 @@ public final class FhirJson {
      *
      * @param json the JSON text of one resource
      * @return the resource, of the class named by its {@code resourceType}
-     * @throws IllegalArgumentException if the text is not a valid FHIR resource for this model
+     * @throws se.poroli.fhirplace.r5.FhirFormatException if the text is not a valid FHIR resource for this model
      */
     public static Resource read(String json) {
         return read(new StringReader(Objects.requireNonNull(json, "json")));
@@ -81,7 +82,7 @@ public final class FhirJson {
      * @param type the expected resource class
      * @param <T> the resource type
      * @return the resource
-     * @throws IllegalArgumentException if the text is not a valid FHIR resource of that type
+     * @throws se.poroli.fhirplace.r5.FhirFormatException if the text is not a valid FHIR resource of that type
      */
     public static <T extends Resource> T read(String json, Class<T> type) {
         return as(read(json), type);
@@ -92,14 +93,14 @@ public final class FhirJson {
      *
      * @param reader the source of one resource
      * @return the resource, of the class named by its {@code resourceType}
-     * @throws IllegalArgumentException if the content is not a valid FHIR resource for this model
+     * @throws se.poroli.fhirplace.r5.FhirFormatException if the content is not a valid FHIR resource for this model
      */
     public static Resource read(Reader reader) {
         JsonObject object;
         try (JsonReader json = Json.createReader(new NonClosingReader(reader))) {
             object = json.readObject();
         } catch (JsonException e) {
-            throw new IllegalArgumentException("Invalid JSON: " + e.getMessage(), e);
+            throw Errors.syntax("Invalid JSON: " + e.getMessage(), e);
         }
         return read(object);
     }
@@ -109,7 +110,7 @@ public final class FhirJson {
      *
      * @param object the JSON object of one resource
      * @return the resource, of the class named by its {@code resourceType}
-     * @throws IllegalArgumentException if the object is not a valid FHIR resource for this model
+     * @throws se.poroli.fhirplace.r5.FhirFormatException if the object is not a valid FHIR resource for this model
      */
     public static Resource read(JsonObject object) {
         return JsonCodec.readResource(Objects.requireNonNull(object, "object"), "");
@@ -117,8 +118,8 @@ public final class FhirJson {
 
     static <T extends Resource> T as(Resource resource, Class<T> type) {
         if (!type.isInstance(resource)) {
-            throw new IllegalArgumentException("Expected a " + type.getSimpleName() + " but got a "
-                    + resource.getClass().getSimpleName());
+            throw Errors.structure(resource.getClass().getSimpleName(), "expected a " + type.getSimpleName()
+                    + " but got a " + resource.getClass().getSimpleName());
         }
         return type.cast(resource);
     }

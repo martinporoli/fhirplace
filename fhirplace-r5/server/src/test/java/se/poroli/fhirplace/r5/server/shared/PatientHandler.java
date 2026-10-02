@@ -41,6 +41,8 @@ import se.poroli.fhirplace.r5.server.TokenParam;
 import se.poroli.fhirplace.r5.server.Update;
 import se.poroli.fhirplace.r5.server.VRead;
 import se.poroli.fhirplace.r5.server.VersionId;
+import se.poroli.fhirplace.r5.validation.Issue;
+import se.poroli.fhirplace.r5.validation.Validator;
 
 /** A versioned in-memory Patient store implementing every supported interaction. */
 @ApplicationScoped
@@ -90,9 +92,23 @@ public class PatientHandler {
                 .findFirst();
     }
 
-    /** Echoes the request's {@code X-Correlation-Id} header, to show reading the request and adding headers. */
+    /** The rules new patients must follow: one error rule and one warning rule. */
+    static final Validator<Patient> PROFILE = Validator.builder(Patient.class)
+            .each(Patient::name, "name", Validator.builder(HumanName.class)
+                    .rule("test-1", n -> n.family() == null || !"Rejected".equals(n.family().value()),
+                            Issue.error(IssueType.BUSINESS_RULE, "The family name Rejected is not accepted")
+                                    .at("family"))
+                    .build())
+            .rule("test-2", p -> !p.name().isEmpty(), Issue.warning(IssueType.REQUIRED, "A patient should have a name"))
+            .build();
+
+    /**
+     * Validates against {@link #PROFILE}, and echoes the request's {@code X-Correlation-Id} header, to show reading the
+     * request and adding headers.
+     */
     @Create
     public FhirResult<Patient> create(Patient patient, FhirRequest request) {
+        PROFILE.validate(patient).throwIfInvalid();
         FhirResult<Patient> result = FhirResult.of(201, store("p" + ids.incrementAndGet(), patient));
         String correlationId = request.header("X-Correlation-Id");
         return correlationId == null ? result : result.withHeader("X-Correlation-Id", correlationId);

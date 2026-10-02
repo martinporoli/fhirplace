@@ -19,6 +19,7 @@ import se.poroli.fhirplace.r5.datatypes.FhirPositiveInt;
 import se.poroli.fhirplace.r5.datatypes.FhirUnsignedInt;
 import se.poroli.fhirplace.r5.datatypes.FhirXhtml;
 import se.poroli.fhirplace.r5.datatypes.PrimitiveType;
+import se.poroli.fhirplace.r5.internal.Errors;
 import se.poroli.fhirplace.r5.internal.FhirTypes;
 import se.poroli.fhirplace.r5.internal.ModelInfo;
 import se.poroli.fhirplace.r5.internal.Property;
@@ -185,10 +186,15 @@ final class JsonCodec {
         JsonObject object = object(json, path);
         JsonValue type = object.get(RESOURCE_TYPE);
         if (!(type instanceof JsonString typeName)) {
-            throw new IllegalArgumentException(path + ": missing resourceType");
+            throw Errors.structure(path, "missing resourceType");
         }
-        Class<? extends Resource> resourceClass = FhirTypes.resourceClass(typeName.getString());
         String resourcePath = path.isEmpty() ? typeName.getString() : path;
+        Class<? extends Resource> resourceClass;
+        try {
+            resourceClass = FhirTypes.resourceClass(typeName.getString());
+        } catch (IllegalArgumentException e) {
+            throw Errors.structure(resourcePath, e.getMessage());
+        }
         return (Resource) readComplex(resourceClass, object, resourcePath, true);
     }
 
@@ -206,11 +212,11 @@ final class JsonCodec {
             }
             ModelInfo.Resolved resolved = info.resolve(name);
             if (resolved == null) {
-                throw new IllegalArgumentException(path + ": unknown element '" + key + "'");
+                throw Errors.structure(path, "unknown element '" + key + "'");
             }
             Property property = resolved.property();
             if (values[property.index()] != null) {
-                throw new IllegalArgumentException(path + ": more than one value for " + property.name() + "[x]");
+                throw Errors.structure(path, "more than one value for " + property.name() + "[x]");
             }
             String elementPath = path + "." + name;
             JsonValue value = object.get(name);
@@ -220,13 +226,13 @@ final class JsonCodec {
                         ? readList(property, resolved.type(), value, element, elementPath)
                         : readSingle(property, resolved.type(), value, element, elementPath);
             } catch (ClassCastException e) {
-                throw new IllegalArgumentException(elementPath + ": unexpected JSON " + describe(value), e);
+                throw Errors.structure(elementPath, "unexpected JSON " + describe(value));
             }
         }
         try {
             return info.create(values);
         } catch (IllegalArgumentException | NullPointerException e) {
-            throw new IllegalArgumentException(path + ": " + e.getMessage(), e);
+            throw Errors.fromModel(path, e);
         }
     }
 
@@ -236,7 +242,7 @@ final class JsonCodec {
         JsonArray elements = isNull(element) ? null : element.asJsonArray();
         int size = Math.max(values == null ? 0 : values.size(), elements == null ? 0 : elements.size());
         if (values != null && elements != null && values.size() != elements.size()) {
-            throw new IllegalArgumentException(path + ": value and _ arrays differ in length");
+            throw Errors.structure(path, "value and _ arrays differ in length");
         }
         List<Object> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
@@ -253,7 +259,7 @@ final class JsonCodec {
                 ? (PrimitiveType.class.isAssignableFrom(type) ? Property.Kind.PRIMITIVE : Property.Kind.COMPLEX)
                 : property.kind();
         if (kind != Property.Kind.PRIMITIVE && element != null) {
-            throw new IllegalArgumentException(path + ": unexpected _" + property.name());
+            throw Errors.structure(path, "unexpected _" + property.name());
         }
         return switch (kind) {
             case STRING -> ((JsonString) value).getString();
@@ -273,7 +279,7 @@ final class JsonCodec {
             JsonObject object = object(element, path);
             for (String key : object.keySet()) {
                 if (!key.equals("id") && !key.equals("extension")) {
-                    throw new IllegalArgumentException(path + ": unknown element '_" + key + "'");
+                    throw Errors.structure(path, "unknown element '_" + key + "'");
                 }
             }
             if (object.containsKey("id")) {
@@ -293,7 +299,7 @@ final class JsonCodec {
         try {
             return FhirTypes.primitive(type, property.enumType(), id, extensions, lexical);
         } catch (IllegalArgumentException | NullPointerException | java.time.DateTimeException e) {
-            throw new IllegalArgumentException(path + ": " + e.getMessage(), e);
+            throw Errors.fromModel(path, e);
         }
     }
 
@@ -308,14 +314,14 @@ final class JsonCodec {
                 if (value == JsonValue.FALSE) {
                     yield "false";
                 }
-                throw new IllegalArgumentException(path + ": expected a primitive value but got " + describe(value));
+                throw Errors.structure(path, "expected a primitive value but got " + describe(value));
             }
         };
     }
 
     private static JsonObject object(JsonValue value, String path) {
         if (!(value instanceof JsonObject object)) {
-            throw new IllegalArgumentException(path + ": expected a JSON object but got " + describe(value));
+            throw Errors.structure(path, "expected a JSON object but got " + describe(value));
         }
         return object;
     }

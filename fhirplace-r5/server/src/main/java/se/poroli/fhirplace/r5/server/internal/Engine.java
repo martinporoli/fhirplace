@@ -35,6 +35,7 @@ import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.FhirResponse;
 import se.poroli.fhirplace.r5.server.FhirResult;
 import se.poroli.fhirplace.r5.server.Saved;
+import se.poroli.fhirplace.r5.validation.ValidationException;
 
 /** Implements the FHIR RESTful API on top of the validated handlers. Thread-safe. */
 public final class Engine {
@@ -171,6 +172,8 @@ public final class Engine {
             result = route(request);
         } catch (FhirException e) {
             result = new Result(e.status(), new LinkedHashMap<>(e.headers()), e.outcome());
+        } catch (ValidationException e) {
+            result = new Result(e.status(), e.result().toOperationOutcome());
         }
         Map<String, List<String>> headers = new LinkedHashMap<>(result.headers());
         byte[] body = new byte[0];
