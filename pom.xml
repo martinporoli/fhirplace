@@ -21,6 +21,7 @@
 
     <modules>
         <module>fhirplace-r5</module>
+        <module>examples/quarkus</module>
     </modules>
 
     <properties>

@@ -5,10 +5,9 @@ import jakarta.enterprise.context.Initialized;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.spi.Bean;
-import jakarta.enterprise.inject.spi.BeanContainer;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,16 +22,17 @@ import se.poroli.fhirplace.r5.server.FhirResource;
 @ApplicationScoped
 public class HandlerRegistry {
 
-    private final BeanContainer beans;
+    private final Instance<Object> beans;
     private Map<String, Registered> handlers;
 
     /**
      * Creates the registry.
      *
-     * @param beans the CDI container
+     * @param beans all beans; an {@code @Any Instance<Object>} injection point also keeps build-time containers
+     *     such as Quarkus from removing handler beans that nothing else injects
      */
     @Inject
-    public HandlerRegistry(BeanContainer beans) {
+    public HandlerRegistry(@Any Instance<Object> beans) {
         this.beans = beans;
     }
 
@@ -81,7 +81,8 @@ public class HandlerRegistry {
     private Map<String, Registered> discover() {
         List<String> problems = new ArrayList<>();
         Map<String, Registered> found = new TreeMap<>();
-        for (Bean<?> bean : beans.getBeans(Object.class, Any.Literal.INSTANCE)) {
+        for (Instance.Handle<Object> handle : beans.handles()) {
+            Bean<?> bean = handle.getBean();
             Class<?> beanClass = bean.getBeanClass();
             if (!beanClass.isAnnotationPresent(FhirResource.class)) {
                 continue;
@@ -99,18 +100,13 @@ public class HandlerRegistry {
                         + " handle " + handler.typeName());
                 continue;
             }
-            Object instance = beans.createInstance().select(beanClass, qualifiers(bean)).get();
+            Object instance = handle.get();
             found.put(handler.typeName(), new Registered(handler, instance));
         }
         if (!problems.isEmpty()) {
             throw new IllegalStateException(String.join("\n", problems));
         }
         return java.util.Collections.unmodifiableMap(found);
-    }
-
-    private static java.lang.annotation.Annotation[] qualifiers(Bean<?> bean) {
-        Collection<java.lang.annotation.Annotation> qualifiers = bean.getQualifiers();
-        return qualifiers.toArray(new java.lang.annotation.Annotation[0]);
     }
 
     /**
