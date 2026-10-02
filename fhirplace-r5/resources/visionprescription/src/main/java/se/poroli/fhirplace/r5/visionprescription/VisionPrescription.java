@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.visionprescription;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -23,6 +25,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.FinancialResourceStatusCodes;
 
 /**
@@ -49,6 +53,8 @@ import se.poroli.fhirplace.r5.valuesets.FinancialResourceStatusCodes;
  * @param lensSpecification Vision lens authorization. Required.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/VisionPrescription">FHIR R5 VisionPrescription</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record VisionPrescription(
         String id,
         Meta meta,

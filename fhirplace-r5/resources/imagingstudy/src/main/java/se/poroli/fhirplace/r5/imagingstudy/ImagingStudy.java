@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.imagingstudy;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Representation of the content produced in a DICOM imaging study.
@@ -58,6 +62,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param series Each study has one or more series of instances.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ImagingStudy">FHIR R5 ImagingStudy</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ImagingStudy(
         String id,
         Meta meta,

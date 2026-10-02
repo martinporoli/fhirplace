@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.molecularsequence;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +22,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Representation of a molecular sequence.
@@ -49,6 +53,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param relative A sequence defined relative to another sequence.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/MolecularSequence">FHIR R5 MolecularSequence</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record MolecularSequence(
         String id,
         Meta meta,

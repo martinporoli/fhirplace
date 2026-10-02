@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.insuranceplan;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +23,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
 /**
@@ -53,6 +57,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param plan Plan details.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/InsurancePlan">FHIR R5 InsurancePlan</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record InsurancePlan(
         String id,
         Meta meta,

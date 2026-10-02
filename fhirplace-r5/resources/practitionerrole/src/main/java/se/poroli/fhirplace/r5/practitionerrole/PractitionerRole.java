@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.practitionerrole;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -17,6 +19,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A specific set of Roles/Locations/specialties/services that a practitioner may perform, or has performed at an
@@ -51,6 +55,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param endpoint Endpoints for interacting with the practitioner in this role. Reference to Endpoint.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/PractitionerRole">FHIR R5 PractitionerRole</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record PractitionerRole(
         String id,
         Meta meta,

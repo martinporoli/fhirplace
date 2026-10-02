@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.allergyintolerance;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Risk of harmful or undesirable, physiological response which is unique to an individual and associated with
@@ -58,6 +62,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param reaction Adverse Reaction Events linked to exposure to substance.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/AllergyIntolerance">FHIR R5 AllergyIntolerance</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record AllergyIntolerance(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.medication;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Ratio;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * This resource is primarily used for the identification and definition of a medication, including ingredients, for
@@ -53,6 +57,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param definition Knowledge about this medication. Reference to MedicationKnowledge.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Medication">FHIR R5 Medication</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Medication(
         String id,
         Meta meta,

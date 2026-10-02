@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.plandefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,8 @@ import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
 import se.poroli.fhirplace.r5.datatypes.Timing;
 import se.poroli.fhirplace.r5.datatypes.TriggerDefinition;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.ActionCardinalityBehavior;
 import se.poroli.fhirplace.r5.valuesets.ActionConditionKind;
 import se.poroli.fhirplace.r5.valuesets.ActionGroupingBehavior;
@@ -103,6 +107,8 @@ import se.poroli.fhirplace.r5.valuesets.RequestPriority;
  * @param asNeeded Preconditions for service. One of boolean, CodeableConcept.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/PlanDefinition">FHIR R5 PlanDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record PlanDefinition(
         String id,
         Meta meta,

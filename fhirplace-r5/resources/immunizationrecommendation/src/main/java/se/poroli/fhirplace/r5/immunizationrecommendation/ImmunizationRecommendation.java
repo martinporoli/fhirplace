@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.immunizationrecommendation;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A patient's point-in-time set of recommendations (i.e. forecasting) according to a published schedule with optional
@@ -41,6 +45,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param recommendation Vaccine administration recommendations. Required.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ImmunizationRecommendation">FHIR R5 ImmunizationRecommendation</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ImmunizationRecommendation(
         String id,
         Meta meta,

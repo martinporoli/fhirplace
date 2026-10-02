@@ -1,0 +1,117 @@
+{
+  "resourceType": "AdverseEvent",
+  "id": "example",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>Severe rash on the trunk after taking Amoxicillin.</p></div>"
+  },
+  "identifier": [
+    {
+      "system": "http://acme.com/ids/patients/risks",
+      "value": "49476534"
+    }
+  ],
+  "status": "completed",
+  "actuality": "actual",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/adverse-event-category",
+          "code": "product-use-error",
+          "display": "Product Use Error"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "1912002",
+        "display": "Fall"
+      }
+    ],
+    "text": "This was a mild rash on the left forearm"
+  },
+  "subject": {
+    "reference": "Patient/example"
+  },
+  "encounter": {
+    "reference": "Encounter/example"
+  },
+  "occurrenceDateTime": "2017-01-29T12:34:56+00:00",
+  "_occurrenceDateTime": {
+    "extension": [
+      {
+        "url": "http://example.org/fhir/StructureDefinition/estimated",
+        "valueBoolean": true
+      }
+    ]
+  },
+  "detected": "2017-01-29T12:34:56+00:00",
+  "recordedDate": "2017-01-29T12:34:56+00:00",
+  "seriousness": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/adverse-event-seriousness",
+        "code": "non-serious",
+        "display": "Non-serious"
+      }
+    ]
+  },
+  "outcome": [
+    {
+      "coding": [
+        {
+          "system": "http://snomed.info/sct",
+          "code": "370996005",
+          "display": "Patient condition resolved"
+        }
+      ]
+    }
+  ],
+  "recorder": {
+    "reference": "Practitioner/example"
+  },
+  "participant": [
+    {
+      "function": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+            "code": "INF",
+            "display": "informant"
+          }
+        ]
+      },
+      "actor": {
+        "reference": "Practitioner/example"
+      }
+    }
+  ],
+  "expectedInResearchStudy": false,
+  "suspectEntity": [
+    {
+      "instanceReference": {
+        "reference": "Medication/example"
+      },
+      "causality": {
+        "assessmentMethod": {
+          "text": "Clinical judgement"
+        },
+        "entityRelatedness": {
+          "text": "Probably related"
+        },
+        "author": {
+          "reference": "Practitioner/example"
+        }
+      }
+    }
+  ],
+  "note": [
+    {
+      "text": "Line one of the note.\nLine two of the note."
+    }
+  ]
+}

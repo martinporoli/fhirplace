@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.structuredefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.FHIRVersion;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
@@ -75,6 +79,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param differential Differential view of the structure.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/StructureDefinition">FHIR R5 StructureDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record StructureDefinition(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.questionnaire;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.time.temporal.Temporal;
@@ -72,6 +74,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
 import se.poroli.fhirplace.r5.datatypes.TriggerDefinition;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
 import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 import se.poroli.fhirplace.r5.valuesets.ResourceType;
 
@@ -115,6 +119,8 @@ import se.poroli.fhirplace.r5.valuesets.ResourceType;
  * @param item Questions and sections within the Questionnaire.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Questionnaire">FHIR R5 Questionnaire</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Questionnaire(
         String id,
         Meta meta,

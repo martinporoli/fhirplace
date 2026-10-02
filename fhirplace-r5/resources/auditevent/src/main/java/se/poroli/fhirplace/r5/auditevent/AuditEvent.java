@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.auditevent;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -67,6 +69,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
 import se.poroli.fhirplace.r5.datatypes.TriggerDefinition;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
 import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A record of an event relevant for purposes such as operations, privacy, security, maintenance, and performance
@@ -102,6 +106,8 @@ import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
  * @param entity Data or objects used.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/AuditEvent">FHIR R5 AuditEvent</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record AuditEvent(
         String id,
         Meta meta,

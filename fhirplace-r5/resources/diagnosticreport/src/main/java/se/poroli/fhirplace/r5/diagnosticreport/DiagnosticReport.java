@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.diagnosticreport;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -25,6 +27,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * The findings and interpretation of diagnostic tests performed on patients, groups of patients, products,
@@ -71,6 +75,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param presentedForm Entire report as issued.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/DiagnosticReport">FHIR R5 DiagnosticReport</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record DiagnosticReport(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.medicationdispense;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Indicates that a medication product is to be or has been dispensed for a named person/patient.
@@ -69,6 +73,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param eventHistory A list of relevant lifecycle events. Reference to Provenance.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/MedicationDispense">FHIR R5 MedicationDispense</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record MedicationDispense(
         String id,
         Meta meta,

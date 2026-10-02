@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.organizationaffiliation;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +18,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Defines an affiliation/assotiation/relationship between 2 distinct organizations, that is not a part-of
@@ -48,6 +52,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param endpoint Technical endpoints providing access to services operated for this role. Reference to Endpoint.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/OrganizationAffiliation">FHIR R5 OrganizationAffiliation</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record OrganizationAffiliation(
         String id,
         Meta meta,

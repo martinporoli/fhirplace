@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.clinicalimpression;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.EventStatus;
 
 /**
@@ -62,6 +66,8 @@ import se.poroli.fhirplace.r5.valuesets.EventStatus;
  * @param note Comments made about the ClinicalImpression.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ClinicalImpression">FHIR R5 ClinicalImpression</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ClinicalImpression(
         String id,
         Meta meta,

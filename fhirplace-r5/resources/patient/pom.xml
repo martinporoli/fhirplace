@@ -14,4 +14,12 @@
 
     <name>FhirPlace R5 Patient</name>
     <description>FHIR R5 Patient resource.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.eclipse.parsson</groupId>
+            <artifactId>parsson</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

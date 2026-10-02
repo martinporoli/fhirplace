@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.implementationguide;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.FHIRVersion;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 import se.poroli.fhirplace.r5.valuesets.ResourceType;
@@ -72,6 +76,8 @@ import se.poroli.fhirplace.r5.valuesets.ResourceType;
  * @param manifest Information about an assembled IG.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ImplementationGuide">FHIR R5 ImplementationGuide</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ImplementationGuide(
         String id,
         Meta meta,

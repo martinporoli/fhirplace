@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.device;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.DeviceNameType;
 
 /**
@@ -87,6 +91,8 @@ import se.poroli.fhirplace.r5.valuesets.DeviceNameType;
  * @param parent The higher level or encompassing device that this device is a logical part of. Reference to Device.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Device">FHIR R5 Device</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Device(
         String id,
         Meta meta,

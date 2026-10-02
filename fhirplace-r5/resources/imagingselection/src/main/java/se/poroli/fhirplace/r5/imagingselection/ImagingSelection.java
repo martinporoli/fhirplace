@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.imagingselection;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -24,6 +26,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A selection of DICOM SOP instances and/or frames within a single Study and Series.
@@ -61,6 +65,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param instance The selected instances.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ImagingSelection">FHIR R5 ImagingSelection</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ImagingSelection(
         String id,
         Meta meta,

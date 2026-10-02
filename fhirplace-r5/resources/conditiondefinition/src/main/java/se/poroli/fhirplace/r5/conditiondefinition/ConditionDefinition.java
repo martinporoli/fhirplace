@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.conditiondefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
 /**
@@ -72,6 +76,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param plan Plan that is appropriate.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ConditionDefinition">FHIR R5 ConditionDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ConditionDefinition(
         String id,
         Meta meta,

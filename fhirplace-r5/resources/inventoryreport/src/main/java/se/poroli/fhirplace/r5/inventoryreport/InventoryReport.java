@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.inventoryreport;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A report of inventory or stock items.
@@ -48,6 +52,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param note A note associated with the InventoryReport.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/InventoryReport">FHIR R5 InventoryReport</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record InventoryReport(
         String id,
         Meta meta,

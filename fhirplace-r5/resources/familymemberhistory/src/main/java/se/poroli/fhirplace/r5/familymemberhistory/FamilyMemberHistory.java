@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.familymemberhistory;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Significant health conditions for a person related to the patient relevant in the context of care for the patient.
@@ -65,6 +69,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param procedure Procedures that the related person had.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/FamilyMemberHistory">FHIR R5 FamilyMemberHistory</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record FamilyMemberHistory(
         String id,
         Meta meta,

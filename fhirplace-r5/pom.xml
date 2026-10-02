@@ -19,6 +19,7 @@
     <modules>
         <module>core</module>
         <module>resources</module>
+        <module>serialization-tests</module>
         <module>bom</module>
         <module>all</module>
     </modules>

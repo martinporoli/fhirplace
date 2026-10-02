@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.devicedefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +33,8 @@ import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.DeviceNameType;
 
 /**
@@ -79,6 +83,8 @@ import se.poroli.fhirplace.r5.valuesets.DeviceNameType;
  * @param chargeItem Billing code or reference associated with the device.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/DeviceDefinition">FHIR R5 DeviceDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record DeviceDefinition(
         String id,
         Meta meta,

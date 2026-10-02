@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.messageheader;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +23,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * The header for a message exchange that is either requesting or responding to an action.
@@ -48,6 +52,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param definition Link to the definition for this message. Canonical reference to MessageDefinition.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/MessageHeader">FHIR R5 MessageHeader</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record MessageHeader(
         String id,
         Meta meta,

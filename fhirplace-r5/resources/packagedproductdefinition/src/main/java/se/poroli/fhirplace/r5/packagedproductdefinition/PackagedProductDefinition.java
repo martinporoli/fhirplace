@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.packagedproductdefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.ProductShelfLife;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A medically related item or items, in a container or package.
@@ -67,6 +71,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param characteristic Allows the key features to be recorded, such as "hospital pack", "nurse prescribable".
  * @see <a href="http://hl7.org/fhir/StructureDefinition/PackagedProductDefinition">FHIR R5 PackagedProductDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record PackagedProductDefinition(
         String id,
         Meta meta,

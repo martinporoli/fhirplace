@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.manufactureditemdefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
 /**
@@ -57,6 +61,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  *   the ingredients that are part of its chemical makeup.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ManufacturedItemDefinition">FHIR R5 ManufacturedItemDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ManufacturedItemDefinition(
         String id,
         Meta meta,

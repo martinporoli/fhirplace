@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.testreport;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -21,6 +23,8 @@ import se.poroli.fhirplace.r5.datatypes.FhirUri;
 import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A summary of information based on the results of executing a TestScript.
@@ -51,6 +55,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
  * @param teardown The results of running the series of required clean up steps.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/TestReport">FHIR R5 TestReport</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record TestReport(
         String id,
         Meta meta,

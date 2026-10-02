@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.appointmentresponse;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -20,6 +22,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A reply to an appointment request for a patient and/or practitioner(s), such as a confirmation or rejection.
@@ -51,6 +55,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param recurrenceId The recurrence ID of the specific recurring request.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/AppointmentResponse">FHIR R5 AppointmentResponse</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record AppointmentResponse(
         String id,
         Meta meta,

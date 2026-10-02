@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.substancereferenceinformation;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Todo.
@@ -39,6 +43,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param target Todo.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/SubstanceReferenceInformation">FHIR R5 SubstanceReferenceInformation</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record SubstanceReferenceInformation(
         String id,
         Meta meta,

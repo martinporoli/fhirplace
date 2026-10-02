@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.endpoint;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +21,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * The technical details of an endpoint that can be used for electronic services, such as for web services providing
@@ -51,6 +55,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param header Usage depends on the channel type.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Endpoint">FHIR R5 Endpoint</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Endpoint(
         String id,
         Meta meta,

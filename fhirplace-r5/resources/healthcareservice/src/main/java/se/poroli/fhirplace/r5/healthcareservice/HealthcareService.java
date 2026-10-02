@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.healthcareservice;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +22,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * The details of a healthcare service available at a location or in a catalog.
@@ -61,6 +65,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  *   Reference to Endpoint.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/HealthcareService">FHIR R5 HealthcareService</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record HealthcareService(
         String id,
         Meta meta,

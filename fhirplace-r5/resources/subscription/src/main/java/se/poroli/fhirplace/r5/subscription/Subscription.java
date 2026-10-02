@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.subscription;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.SearchComparator;
 import se.poroli.fhirplace.r5.valuesets.SearchModifierCode;
 import se.poroli.fhirplace.r5.valuesets.SubscriptionStatusCodes;
@@ -62,6 +66,8 @@ import se.poroli.fhirplace.r5.valuesets.SubscriptionStatusCodes;
  * @param maxCount Maximum number of events that can be combined in a single notification.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Subscription">FHIR R5 Subscription</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Subscription(
         String id,
         Meta meta,

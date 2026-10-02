@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.location;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Details and position information for a place where services are provided and resources and participants may be
@@ -61,6 +65,8 @@ import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
  * @param endpoint Technical endpoints providing access to services operated for the location. Reference to Endpoint.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Location">FHIR R5 Location</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Location(
         String id,
         Meta meta,

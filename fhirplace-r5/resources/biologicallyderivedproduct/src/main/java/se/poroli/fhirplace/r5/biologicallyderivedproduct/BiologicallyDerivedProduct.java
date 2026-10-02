@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.biologicallyderivedproduct;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,8 @@ import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Ratio;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A biological material originating from a biological entity intended to be transplanted or infused into another
@@ -59,6 +63,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param property A property that is specific to this BiologicallyDerviedProduct instance.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/BiologicallyDerivedProduct">FHIR R5 BiologicallyDerivedProduct</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record BiologicallyDerivedProduct(
         String id,
         Meta meta,

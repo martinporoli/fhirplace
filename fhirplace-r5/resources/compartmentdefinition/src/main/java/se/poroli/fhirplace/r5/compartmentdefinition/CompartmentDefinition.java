@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.compartmentdefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import se.poroli.fhirplace.r5.datatypes.FhirUri;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.CompartmentType;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 import se.poroli.fhirplace.r5.valuesets.ResourceType;
@@ -57,6 +61,8 @@ import se.poroli.fhirplace.r5.valuesets.ResourceType;
  * @param resource How a resource is related to the compartment.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/CompartmentDefinition">FHIR R5 CompartmentDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record CompartmentDefinition(
         String id,
         Meta meta,

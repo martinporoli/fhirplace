@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.group;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -23,6 +25,8 @@ import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Represents a defined collection of entities that may be discussed or acted upon collectively but which are not
@@ -55,6 +59,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param member Who or what is in group.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Group">FHIR R5 Group</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Group(
         String id,
         Meta meta,

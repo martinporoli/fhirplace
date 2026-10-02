@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.artifactassessment;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * This Resource provides one or more comments, classifiers or ratings about a Resource and supports attribution and
@@ -56,6 +60,8 @@ import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
  *   not-persuasive-with-modification.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ArtifactAssessment">FHIR R5 ArtifactAssessment</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ArtifactAssessment(
         String id,
         Meta meta,

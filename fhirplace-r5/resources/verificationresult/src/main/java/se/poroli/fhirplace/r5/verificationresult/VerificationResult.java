@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.verificationresult;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.Signature;
 import se.poroli.fhirplace.r5.datatypes.Timing;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Describes validation requirements, source(s), status and dates for one or more elements.
@@ -52,6 +56,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
  * @param validator Information about the entity validating information.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/VerificationResult">FHIR R5 VerificationResult</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record VerificationResult(
         String id,
         Meta meta,

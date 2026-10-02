@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.schedule;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A container for slots of time that may be available for booking appointments.
@@ -45,6 +49,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param comment Comments on availability.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Schedule">FHIR R5 Schedule</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Schedule(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.riskassessment;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -25,6 +27,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.ObservationStatus;
 
 /**
@@ -59,6 +63,8 @@ import se.poroli.fhirplace.r5.valuesets.ObservationStatus;
  * @param note Comments on the risk assessment.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/RiskAssessment">FHIR R5 RiskAssessment</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record RiskAssessment(
         String id,
         Meta meta,

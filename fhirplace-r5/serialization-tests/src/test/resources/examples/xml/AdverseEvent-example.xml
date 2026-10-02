@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AdverseEvent xmlns="http://hl7.org/fhir">
+  <id value="example"/>
+  <text>
+    <status value="generated"/>
+    <div xmlns="http://www.w3.org/1999/xhtml"><p>Severe rash on the trunk after taking Amoxicillin.</p></div>
+  </text>
+  <identifier>
+    <system value="http://acme.com/ids/patients/risks"/>
+    <value value="49476534"/>
+  </identifier>
+  <status value="completed"/>
+  <actuality value="actual"/>
+  <category>
+    <coding>
+      <system value="http://terminology.hl7.org/CodeSystem/adverse-event-category"/>
+      <code value="product-use-error"/>
+      <display value="Product Use Error"/>
+    </coding>
+  </category>
+  <code>
+    <coding>
+      <system value="http://snomed.info/sct"/>
+      <code value="1912002"/>
+      <display value="Fall"/>
+    </coding>
+    <text value="This was a mild rash on the left forearm"/>
+  </code>
+  <subject>
+    <reference value="Patient/example"/>
+  </subject>
+  <encounter>
+    <reference value="Encounter/example"/>
+  </encounter>
+  <occurrenceDateTime value="2017-01-29T12:34:56+00:00">
+    <extension url="http://example.org/fhir/StructureDefinition/estimated">
+      <valueBoolean value="true"/>
+    </extension>
+  </occurrenceDateTime>
+  <detected value="2017-01-29T12:34:56+00:00"/>
+  <recordedDate value="2017-01-29T12:34:56+00:00"/>
+  <seriousness>
+    <coding>
+      <system value="http://terminology.hl7.org/CodeSystem/adverse-event-seriousness"/>
+      <code value="non-serious"/>
+      <display value="Non-serious"/>
+    </coding>
+  </seriousness>
+  <outcome>
+    <coding>
+      <system value="http://snomed.info/sct"/>
+      <code value="370996005"/>
+      <display value="Patient condition resolved"/>
+    </coding>
+  </outcome>
+  <recorder>
+    <reference value="Practitioner/example"/>
+  </recorder>
+  <participant>
+    <function>
+      <coding>
+        <system value="http://terminology.hl7.org/CodeSystem/v3-ParticipationType"/>
+        <code value="INF"/>
+        <display value="informant"/>
+      </coding>
+    </function>
+    <actor>
+      <reference value="Practitioner/example"/>
+    </actor>
+  </participant>
+  <expectedInResearchStudy value="false"/>
+  <suspectEntity>
+    <instanceReference>
+      <reference value="Medication/example"/>
+    </instanceReference>
+    <causality>
+      <assessmentMethod>
+        <text value="Clinical judgement"/>
+      </assessmentMethod>
+      <entityRelatedness>
+        <text value="Probably related"/>
+      </entityRelatedness>
+      <author>
+        <reference value="Practitioner/example"/>
+      </author>
+    </causality>
+  </suspectEntity>
+  <note>
+    <text value="Line one of the note.&#10;Line two of the note."/>
+  </note>
+</AdverseEvent>

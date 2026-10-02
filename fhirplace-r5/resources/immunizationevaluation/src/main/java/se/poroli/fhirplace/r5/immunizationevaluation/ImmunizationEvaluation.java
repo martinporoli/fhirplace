@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.immunizationevaluation;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Describes a comparison of an immunization event against published recommendations to determine if the
@@ -49,6 +53,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param seriesDoses Recommended number of doses for immunity.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ImmunizationEvaluation">FHIR R5 ImmunizationEvaluation</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ImmunizationEvaluation(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.bundle;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.FhirUri;
 import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Signature;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A container for a collection of resources.
@@ -40,6 +44,8 @@ import se.poroli.fhirplace.r5.datatypes.Signature;
  * @param issues Issues with the Bundle.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Bundle">FHIR R5 Bundle</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Bundle(
         String id,
         Meta meta,

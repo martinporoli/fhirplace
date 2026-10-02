@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.substancepolymer;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Properties of a substance specific to it being a polymer.
@@ -44,6 +48,8 @@ import se.poroli.fhirplace.r5.datatypes.Quantity;
  * @param repeat Specifies and quantifies the repeated units and their configuration.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/SubstancePolymer">FHIR R5 SubstancePolymer</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record SubstancePolymer(
         String id,
         Meta meta,

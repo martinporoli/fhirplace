@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.researchsubject;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
 /**
@@ -48,6 +52,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param consent Agreement to participate in study. Reference to Consent.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ResearchSubject">FHIR R5 ResearchSubject</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ResearchSubject(
         String id,
         Meta meta,

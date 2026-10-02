@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.activitydefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
 import se.poroli.fhirplace.r5.datatypes.Timing;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.ActionParticipantType;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 import se.poroli.fhirplace.r5.valuesets.RequestIntent;
@@ -112,6 +116,8 @@ import se.poroli.fhirplace.r5.valuesets.RequestPriority;
  * @param dynamicValue Dynamic aspects of the definition.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ActivityDefinition">FHIR R5 ActivityDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ActivityDefinition(
         String id,
         Meta meta,

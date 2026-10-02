@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.appointment;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -28,6 +30,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A booking of a healthcare event among patient(s), practitioner(s), related person(s) and/or device(s) for a
@@ -82,6 +86,8 @@ import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
  * @param recurrenceTemplate Details of the recurrence pattern/template used to generate occurrences.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Appointment">FHIR R5 Appointment</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Appointment(
         String id,
         Meta meta,

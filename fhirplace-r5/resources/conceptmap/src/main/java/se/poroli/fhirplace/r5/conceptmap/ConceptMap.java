@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.conceptmap;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
 /**
@@ -81,6 +85,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param group Same source and target systems.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ConceptMap">FHIR R5 ConceptMap</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ConceptMap(
         String id,
         Meta meta,

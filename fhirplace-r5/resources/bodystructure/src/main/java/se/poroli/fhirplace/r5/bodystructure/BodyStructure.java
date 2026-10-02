@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.bodystructure;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +21,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Record details about an anatomical structure.
@@ -44,6 +48,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param patient Who this is about. Reference to Patient. Required.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/BodyStructure">FHIR R5 BodyStructure</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record BodyStructure(
         String id,
         Meta meta,

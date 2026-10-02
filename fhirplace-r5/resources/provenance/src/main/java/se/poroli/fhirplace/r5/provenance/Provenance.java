@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.provenance;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.Signature;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Provenance of a resource is a record that describes entities and processes involved in producing and delivering or
@@ -56,6 +60,8 @@ import se.poroli.fhirplace.r5.datatypes.Signature;
  * @param signature Signature on target.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Provenance">FHIR R5 Provenance</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Provenance(
         String id,
         Meta meta,

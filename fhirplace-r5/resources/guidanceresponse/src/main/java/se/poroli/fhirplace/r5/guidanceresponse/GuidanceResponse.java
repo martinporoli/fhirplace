@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.guidanceresponse;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A guidance response is the formal response to a guidance request, including any output parameters returned by the
@@ -58,6 +62,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param dataRequirement Additional required data.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/GuidanceResponse">FHIR R5 GuidanceResponse</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record GuidanceResponse(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.ingredient;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -23,6 +25,8 @@ import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Ratio;
 import se.poroli.fhirplace.r5.datatypes.RatioRange;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
 /**
@@ -55,6 +59,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param substance The substance that comprises this ingredient. Required.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Ingredient">FHIR R5 Ingredient</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Ingredient(
         String id,
         Meta meta,

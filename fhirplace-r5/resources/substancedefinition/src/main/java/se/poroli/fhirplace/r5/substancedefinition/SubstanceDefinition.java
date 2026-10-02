@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.substancedefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Ratio;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * The detailed description of a substance, typically at a level beyond what is used for prescribing.
@@ -70,6 +74,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param sourceMaterial Material or taxonomic/anatomical source.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/SubstanceDefinition">FHIR R5 SubstanceDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record SubstanceDefinition(
         String id,
         Meta meta,

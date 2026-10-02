@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.measurereport;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,8 @@ import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * The MeasureReport resource contains the results of the calculation of a measure; and optionally a reference to the
@@ -62,6 +66,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param evaluatedResource What data was used to calculate the measure score. Reference to Resource.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/MeasureReport">FHIR R5 MeasureReport</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record MeasureReport(
         String id,
         Meta meta,

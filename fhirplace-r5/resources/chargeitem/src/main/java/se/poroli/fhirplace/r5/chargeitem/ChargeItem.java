@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.chargeitem;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.Timing;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * The resource ChargeItem describes the provision of healthcare provider products for a certain patient, therefore
@@ -73,6 +77,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
  * @param supportingInformation Further information supporting this charge. Reference to Resource.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ChargeItem">FHIR R5 ChargeItem</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ChargeItem(
         String id,
         Meta meta,

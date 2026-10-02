@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.immunization;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Describes the event of a patient being administered a vaccine or a record of an immunization as reported by a
@@ -71,6 +75,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param protocolApplied Protocol followed by the provider.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Immunization">FHIR R5 Immunization</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Immunization(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.questionnaireresponse;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +65,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
 import se.poroli.fhirplace.r5.datatypes.TriggerDefinition;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
 import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A structured set of questions and their answers.
@@ -93,6 +97,8 @@ import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
  * @param item Groups and questions.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse">FHIR R5 QuestionnaireResponse</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record QuestionnaireResponse(
         String id,
         Meta meta,

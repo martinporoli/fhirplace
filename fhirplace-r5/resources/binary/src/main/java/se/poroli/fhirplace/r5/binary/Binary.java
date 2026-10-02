@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.binary;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -9,6 +11,8 @@ import se.poroli.fhirplace.r5.datatypes.FhirCode;
 import se.poroli.fhirplace.r5.datatypes.FhirUri;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A resource that represents the data of a single raw artifact as digital content accessible in its native format.
@@ -26,6 +30,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param data The actual content.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Binary">FHIR R5 Binary</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Binary(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.careteam;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,6 +24,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.Timing;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * The Care Team includes all the people and organizations who plan to participate in the coordination and delivery of
@@ -51,6 +55,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
  * @param note Comments made about the CareTeam.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/CareTeam">FHIR R5 CareTeam</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record CareTeam(
         String id,
         Meta meta,

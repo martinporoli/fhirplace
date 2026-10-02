@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.devicemetric;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Describes a measurement, calculation or setting capability of a device.
@@ -44,6 +48,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param calibration Describes the calibrations that have been performed or that are required to be performed.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/DeviceMetric">FHIR R5 DeviceMetric</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record DeviceMetric(
         String id,
         Meta meta,

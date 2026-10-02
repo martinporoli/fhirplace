@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.organization;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +21,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A formally or informally recognized grouping of people or organizations formed for the purpose of achieving some
@@ -50,6 +54,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  *   provision of care.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Organization">FHIR R5 Organization</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Organization(
         String id,
         Meta meta,

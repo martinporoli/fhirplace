@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.examplescenario;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.ExampleScenarioActorType;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
@@ -65,6 +69,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param process Major process within scenario.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ExampleScenario">FHIR R5 ExampleScenario</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ExampleScenario(
         String id,
         Meta meta,

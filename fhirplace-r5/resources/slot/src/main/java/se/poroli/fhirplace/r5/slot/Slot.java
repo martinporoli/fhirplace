@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.slot;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A slot of time on a schedule that may be available for booking appointments.
@@ -51,6 +55,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param comment Comments on the slot to describe any extended information. Such as custom constraints on the slot.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Slot">FHIR R5 Slot</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Slot(
         String id,
         Meta meta,

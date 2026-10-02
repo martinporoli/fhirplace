@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.supplydelivery;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.Timing;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Record of delivery of what is supplied.
@@ -49,6 +53,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
  * @param receiver Who received the delivery. Reference to Practitioner, PractitionerRole, Organization.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/SupplyDelivery">FHIR R5 SupplyDelivery</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record SupplyDelivery(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.claimresponse;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.ClaimProcessingCodes;
 import se.poroli.fhirplace.r5.valuesets.FinancialResourceStatusCodes;
 import se.poroli.fhirplace.r5.valuesets.Use;
@@ -82,6 +86,8 @@ import se.poroli.fhirplace.r5.valuesets.Use;
  * @param error Processing errors.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ClaimResponse">FHIR R5 ClaimResponse</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ClaimResponse(
         String id,
         Meta meta,

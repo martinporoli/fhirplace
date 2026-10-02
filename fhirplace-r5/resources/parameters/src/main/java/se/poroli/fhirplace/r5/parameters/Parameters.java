@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.parameters;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.MonetaryComponent;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.ProductShelfLife;
 import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * This resource is used to pass information into and back from an operation (whether invoked directly from REST or
@@ -33,6 +37,8 @@ import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
  * @param parameter Operation Parameter.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Parameters">FHIR R5 Parameters</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Parameters(
         String id,
         Meta meta,

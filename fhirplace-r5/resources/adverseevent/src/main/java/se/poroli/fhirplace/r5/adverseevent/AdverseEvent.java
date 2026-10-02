@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.adverseevent;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.Timing;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * An event (i.e. any change to current patient status) that may be related to unintended effects on a patient or
@@ -69,6 +73,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
  * @param note Comment on adverse event.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/AdverseEvent">FHIR R5 AdverseEvent</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record AdverseEvent(
         String id,
         Meta meta,

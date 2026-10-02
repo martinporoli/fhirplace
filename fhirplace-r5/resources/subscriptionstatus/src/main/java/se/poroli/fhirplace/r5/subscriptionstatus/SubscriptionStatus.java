@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.subscriptionstatus;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,8 @@ import se.poroli.fhirplace.r5.datatypes.FhirUri;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.SubscriptionStatusCodes;
 
 /**
@@ -45,6 +49,8 @@ import se.poroli.fhirplace.r5.valuesets.SubscriptionStatusCodes;
  * @param error List of errors on the subscription.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/SubscriptionStatus">FHIR R5 SubscriptionStatus</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record SubscriptionStatus(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.requestorchestration;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,8 @@ import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
 import se.poroli.fhirplace.r5.datatypes.Timing;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.ActionCardinalityBehavior;
 import se.poroli.fhirplace.r5.valuesets.ActionConditionKind;
 import se.poroli.fhirplace.r5.valuesets.ActionGroupingBehavior;
@@ -83,6 +87,8 @@ import se.poroli.fhirplace.r5.valuesets.RequestStatus;
  * @param action Proposed actions, if any.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/RequestOrchestration">FHIR R5 RequestOrchestration</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record RequestOrchestration(
         String id,
         Meta meta,

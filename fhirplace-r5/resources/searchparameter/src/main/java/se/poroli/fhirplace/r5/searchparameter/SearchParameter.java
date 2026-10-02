@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.searchparameter;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,8 @@ import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 import se.poroli.fhirplace.r5.valuesets.SearchComparator;
 import se.poroli.fhirplace.r5.valuesets.SearchModifierCode;
@@ -77,6 +81,8 @@ import se.poroli.fhirplace.r5.valuesets.SearchParamType;
  * @param component For Composite resources to define the parts.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/SearchParameter">FHIR R5 SearchParameter</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record SearchParameter(
         String id,
         Meta meta,

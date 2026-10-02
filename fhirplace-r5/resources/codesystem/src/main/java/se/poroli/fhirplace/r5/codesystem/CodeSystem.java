@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.codesystem;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.CodeSystemContentMode;
 import se.poroli.fhirplace.r5.valuesets.FilterOperator;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
@@ -90,6 +94,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param concept Concepts in the code system.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/CodeSystem">FHIR R5 CodeSystem</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record CodeSystem(
         String id,
         Meta meta,

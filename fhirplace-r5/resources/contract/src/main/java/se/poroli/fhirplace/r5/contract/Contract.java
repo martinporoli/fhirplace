@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.contract;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.math.BigDecimal;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -69,6 +71,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
 import se.poroli.fhirplace.r5.datatypes.TriggerDefinition;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
 import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Legally enforceable, formally recorded unilateral or bilateral directive i.e., a policy or agreement.
@@ -120,6 +124,8 @@ import se.poroli.fhirplace.r5.datatypes.VirtualServiceDetail;
  * @param legallyBinding Binding Contract. One of Attachment, Reference.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Contract">FHIR R5 Contract</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Contract(
         String id,
         Meta meta,

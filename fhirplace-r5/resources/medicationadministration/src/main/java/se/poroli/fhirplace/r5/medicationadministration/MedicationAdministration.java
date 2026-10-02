@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.medicationadministration;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,8 @@ import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Ratio;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.Timing;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * Describes the event of a patient consuming or otherwise being administered a medication.
@@ -66,6 +70,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
  * @param eventHistory A list of events of interest in the lifecycle. Reference to Provenance.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/MedicationAdministration">FHIR R5 MedicationAdministration</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record MedicationAdministration(
         String id,
         Meta meta,

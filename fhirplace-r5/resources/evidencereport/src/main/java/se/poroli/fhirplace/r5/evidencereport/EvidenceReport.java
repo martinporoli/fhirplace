@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.evidencereport;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +28,8 @@ import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.ListMode;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
@@ -64,6 +68,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param section Composition is broken into sections.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/EvidenceReport">FHIR R5 EvidenceReport</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record EvidenceReport(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.operationoutcome;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -14,6 +16,8 @@ import se.poroli.fhirplace.r5.datatypes.FhirString;
 import se.poroli.fhirplace.r5.datatypes.FhirUri;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A collection of error, warning, or information messages that result from a system action.
@@ -32,6 +36,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
  * @param issue A single issue associated with the action. Required.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/OperationOutcome">FHIR R5 OperationOutcome</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record OperationOutcome(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.chargeitemdefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,8 @@ import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.RelatedArtifact;
 import se.poroli.fhirplace.r5.datatypes.UsageContext;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
 
 /**
@@ -78,6 +82,8 @@ import se.poroli.fhirplace.r5.valuesets.PublicationStatus;
  * @param propertyGroup Group of properties which are applicable under the same conditions.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ChargeItemDefinition">FHIR R5 ChargeItemDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ChargeItemDefinition(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.episodeofcare;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -17,6 +19,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * An association between a patient and an organization / healthcare provider(s) during which time encounters may
@@ -51,6 +55,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param account The set of accounts that may be used for billing for this EpisodeOfCare. Reference to Account.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/EpisodeOfCare">FHIR R5 EpisodeOfCare</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record EpisodeOfCare(
         String id,
         Meta meta,

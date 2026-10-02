@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.clinicalusedefinition;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,6 +24,8 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Range;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A single issue - either an indication, contraindication, interaction or an undesirable effect for a medicinal
@@ -56,6 +60,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  *   machinery', 'May cause drowsiness'.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/ClinicalUseDefinition">FHIR R5 ClinicalUseDefinition</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record ClinicalUseDefinition(
         String id,
         Meta meta,

@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.account;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -26,6 +28,8 @@ import se.poroli.fhirplace.r5.datatypes.Money;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A financial tool for tracking value accrued for a particular purpose.
@@ -62,6 +66,8 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
  * @param calculatedAt Time the balance amount was calculated.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/Account">FHIR R5 Account</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record Account(
         String id,
         Meta meta,

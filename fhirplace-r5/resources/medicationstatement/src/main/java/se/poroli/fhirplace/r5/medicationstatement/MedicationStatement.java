@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.medicationstatement;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Period;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.datatypes.Timing;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * A record of a medication that is being consumed by a patient.
@@ -61,6 +65,8 @@ import se.poroli.fhirplace.r5.datatypes.Timing;
  * @param adherence Indicates whether the medication is or is not being consumed or administered.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/MedicationStatement">FHIR R5 MedicationStatement</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record MedicationStatement(
         String id,
         Meta meta,

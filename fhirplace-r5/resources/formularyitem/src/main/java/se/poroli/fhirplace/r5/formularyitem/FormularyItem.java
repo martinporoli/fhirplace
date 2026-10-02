@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.formularyitem;
 
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -13,6 +15,8 @@ import se.poroli.fhirplace.r5.datatypes.FhirUri;
 import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Narrative;
+import se.poroli.fhirplace.r5.json.ResourceJsonbDeserializer;
+import se.poroli.fhirplace.r5.json.ResourceJsonbSerializer;
 
 /**
  * This resource describes a product or service that is available through a program and includes the conditions and
@@ -34,6 +38,8 @@ import se.poroli.fhirplace.r5.datatypes.Narrative;
  * @param status active | entered-in-error | inactive. Modifier element.
  * @see <a href="http://hl7.org/fhir/StructureDefinition/FormularyItem">FHIR R5 FormularyItem</a>
  */
+@JsonbTypeSerializer(ResourceJsonbSerializer.class)
+@JsonbTypeDeserializer(ResourceJsonbDeserializer.class)
 public record FormularyItem(
         String id,
         Meta meta,
