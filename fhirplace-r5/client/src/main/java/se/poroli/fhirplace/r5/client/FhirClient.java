@@ -36,10 +36,19 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
  * }</pre>
  *
  * <p>A client is an immutable value: the base URL, an {@code HttpClient}, default headers and a format. Creating or
- * deriving one ({@link #withBaseUri}, {@link #withHeader}) is cheap, so applications that talk to many servers may
+ * deriving one ({@link #at(String)}, {@link #withHeader}) is cheap, so applications that talk to many servers may
  * create a client per request. The connections, threads and other expensive state belong to the {@code HttpClient},
- * which is shared: the one passed to {@link #of(URI, HttpClient)}, or one default client for the whole application.
+ * which is shared: the one passed to {@link #of(String, HttpClient)}, or one default client for the whole application.
  * Clients are thread-safe.
+ *
+ * <p>To configure HTTP, such as timeouts, TLS, proxies or the executor, build the {@code HttpClient} with the JDK's
+ * {@link HttpClient#newBuilder()}, create one {@code FhirClient} with it, and derive the others from that one:
+ *
+ * <pre>{@code
+ * HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+ * FhirClient fhir = FhirClient.of("https://a.example/fhir", http);     // configured once, e.g. as a bean
+ * fhir.at("https://b.example/fhir").read(Patient.class, "123");       // same HttpClient, headers and format
+ * }</pre>
  *
  * <p>Error statuses raise {@link FhirClientException} with the server's OperationOutcome. Reading FHIR JSON needs a
  * Jakarta JSON Processing implementation, such as Parsson, unless the runtime provides one.
@@ -88,6 +97,18 @@ public final class FhirClient {
      * Returns a client for a FHIR server that sends its requests with the given {@code HttpClient}, which carries the
      * application's settings such as timeouts, TLS, proxies, redirects and executor.
      *
+     * @param baseUri the FHIR base URL, such as {@code https://example.org/fhir}
+     * @param httpClient the HTTP client, typically shared by all clients of the application
+     * @return the client
+     */
+    public static FhirClient of(String baseUri, HttpClient httpClient) {
+        return of(URI.create(baseUri), httpClient);
+    }
+
+    /**
+     * Returns a client for a FHIR server that sends its requests with the given {@code HttpClient}, which carries the
+     * application's settings such as timeouts, TLS, proxies, redirects and executor.
+     *
      * @param baseUri the FHIR base URL
      * @param httpClient the HTTP client, typically shared by all clients of the application
      * @return the client
@@ -99,10 +120,20 @@ public final class FhirClient {
     /**
      * Returns a copy for another FHIR server, keeping the HTTP client, headers and format.
      *
+     * @param baseUri the other server's base URL, such as {@code https://b.example/fhir}
+     * @return the new client
+     */
+    public FhirClient at(String baseUri) {
+        return at(URI.create(baseUri));
+    }
+
+    /**
+     * Returns a copy for another FHIR server, keeping the HTTP client, headers and format.
+     *
      * @param baseUri the other server's base URL
      * @return the new client
      */
-    public FhirClient withBaseUri(URI baseUri) {
+    public FhirClient at(URI baseUri) {
         return new FhirClient(baseUri, http, headers, format);
     }
 

@@ -26,15 +26,38 @@ Bundle everything = fhir.send(fhir.request("Patient/123/$everything").GET(), Bun
 Error statuses throw `FhirClientException` with `status()`, `outcome()` (the server's OperationOutcome) and the
 response headers; a stale update, for example, fails with 412.
 
-**Cheap clients.** A `FhirClient` is an immutable value, the base URL plus an `HttpClient`, headers and a format, so
-creating one per request is fine, e.g. in a proxy that routes to many servers. The expensive part, the `HttpClient`
-with its connections and threads, is shared: `FhirClient.of(uri)` uses one default client for the whole application,
-and `FhirClient.of(uri, httpClient)` uses yours, with your timeouts, TLS and proxy settings.
+**Configuration and cheap clients.** A `FhirClient` is an immutable value: the base URL plus an `HttpClient`, default
+headers and a format. The expensive part, the `HttpClient` with its connections and threads, is shared:
+`FhirClient.of(url)` uses one default `HttpClient.newHttpClient()` for the whole application, and
+`FhirClient.of(url, httpClient)` uses yours. Configure HTTP (timeouts, TLS, proxies, executor) with the JDK's own
+builder, create one `FhirClient`, and derive the rest from it; deriving is cheap enough to do per request, e.g. in a
+proxy that routes to many servers.
 
 ```java
-FhirClient template = FhirClient.of(defaultBase, httpClient).withHeader("Authorization", "Bearer " + token);
-FhirClient routed = template.withBaseUri(targetFor(resource));         // same HttpClient and headers
-FhirClient xml = template.withFormat(FhirFormat.XML);
+HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+FhirClient fhir = FhirClient.of("https://a.example/fhir", http).withHeader("Authorization", "Bearer " + token);
+
+fhir.at("https://b.example/fhir").read(Patient.class, "123");          // same HttpClient, headers and format
+fhir.withFormat(FhirFormat.XML).read(Patient.class, "123");
+```
+
+With dependency injection, make the configured client a bean and inject it where needed:
+
+```java
+@ApplicationScoped                                  // CDI (MicroProfile, Quarkus)
+public class FhirClients {
+    @Produces @Singleton                            // not @ApplicationScoped: FhirClient is final, so no proxy
+    FhirClient fhirClient() {
+        return FhirClient.of("https://a.example/fhir",
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
+    }
+}
+
+@Bean                                               // Spring
+FhirClient fhirClient() {
+    return FhirClient.of("https://a.example/fhir",
+            HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
+}
 ```
 
 **Plain `HttpClient`.** `FhirBodyHandlers` and `FhirBodyPublishers` bring the FHIR mapping to ordinary JDK code:

@@ -40,7 +40,7 @@ public class Backends {
         if (backend == null) {
             throw FhirException.invalid("Unknown region '" + region + "'; one of " + regions.keySet());
         }
-        FhirClient client = template.withBaseUri(backend);
+        FhirClient client = template.at(backend);
         String authorization = request.header("Authorization");
         return authorization == null ? client : client.withHeader("Authorization", authorization);
     }

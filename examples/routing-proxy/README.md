@@ -5,7 +5,7 @@ request with `fhirplace-r5-client` to the FHIR server of the region in the reque
 compiles and tests it but never packages or publishes it.
 
 - `Backends` maps regions to backend URLs (`proxy.backends.<region>` in `application.properties`) and creates a
-  `FhirClient` per request with `template.withBaseUri(backend)`. That is cheap: the client is a small immutable value,
+  `FhirClient` per request with `template.at(backend)`. That is cheap: the client is a small immutable value,
   and all backends share one `HttpClient` (a bean in `ProxyApplication`). It also forwards the caller's
   `Authorization` header.
 - `PatientRouter` is an ordinary fhirplace handler whose methods call the backend. The fhirplace server still does

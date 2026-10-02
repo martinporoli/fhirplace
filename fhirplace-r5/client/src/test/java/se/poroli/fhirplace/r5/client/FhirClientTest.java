@@ -143,11 +143,12 @@ class FhirClientTest {
     @Test
     void derivedClientsShareTheHttpClient() {
         HttpClient http = HttpClient.newHttpClient();
-        FhirClient a = FhirClient.of(URI.create("https://a.example/fhir"), http).withHeader("Authorization", "x");
-        FhirClient b = a.withBaseUri(URI.create("https://b.example/fhir"));
+        FhirClient a = FhirClient.of("https://a.example/fhir", http).withHeader("Authorization", "x");
+        FhirClient b = a.at("https://b.example/fhir");
 
         assertSame(http, b.httpClient());
         assertEquals(URI.create("https://b.example/fhir/"), b.baseUri());
+        assertSame(http, a.at(URI.create("https://c.example/fhir")).httpClient());
         assertSame(FhirClient.of("https://a.example").httpClient(), FhirClient.of("https://b.example").httpClient());
     }
 }
