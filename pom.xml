@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>se.poroli.fhirplace</groupId>
-    <artifactId>fhir-place-parent</artifactId>
+    <artifactId>fhirplace-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>FHIR Place</name>
+    <name>FhirPlace</name>
     <description>Java library for building FHIR servers and clients.</description>
 
     <licenses>
@@ -20,7 +20,7 @@
     </licenses>
 
     <modules>
-        <module>fhir-place-r5</module>
+        <module>fhirplace-r5</module>
     </modules>
 
     <properties>
