@@ -10,7 +10,8 @@ import java.lang.annotation.Target;
  * Marks the handler method for the FHIR {@code read} interaction, {@code GET [base]/[type]/[id]}.
  *
  * <p>The method takes an {@link Id} parameter and returns the resource, or an empty {@code Optional} or {@code null}
- * if there is none, which the server answers with 404 and an {@code OperationOutcome}. The server derives
+ * if there is none, which the server answers with 404 and an {@code OperationOutcome}; or a {@link FhirResult}
+ * to choose the status and headers. The server derives
  * {@code ETag} and {@code Last-Modified} from the resource's {@code meta} and answers conditional reads
  * ({@code If-None-Match}, {@code If-Modified-Since}) with 304. It also uses this method to check {@code If-Match} on
  * update and delete.

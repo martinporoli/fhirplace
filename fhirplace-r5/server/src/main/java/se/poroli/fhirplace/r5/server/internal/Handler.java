@@ -15,7 +15,9 @@ import java.util.Set;
 import java.util.stream.Stream;
 import se.poroli.fhirplace.r5.Resource;
 import se.poroli.fhirplace.r5.server.DateParam;
+import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
+import se.poroli.fhirplace.r5.server.FhirResult;
 import se.poroli.fhirplace.r5.server.Id;
 import se.poroli.fhirplace.r5.server.ReferenceParam;
 import se.poroli.fhirplace.r5.server.Saved;
@@ -103,6 +105,9 @@ record Handler(Class<? extends Resource> resourceType, Class<?> beanClass, Map<I
     private static Binding binding(Parameter parameter, Interaction interaction,
             Class<? extends Resource> resourceType, String where, List<String> problems) {
         String name = where + " parameter " + parameter.getName();
+        if (parameter.getType() == FhirRequest.class) {
+            return new Binding.Request();
+        }
         if (parameter.isAnnotationPresent(Id.class)) {
             if (parameter.getType() != String.class) {
                 problems.add(name + ": @Id must be a String");
@@ -147,7 +152,8 @@ record Handler(Class<? extends Resource> resourceType, Class<?> beanClass, Map<I
             }
             return new Binding.Body();
         }
-        problems.add(name + ": unsupported parameter; annotate it with @Id, @VersionId or @SearchParam");
+        problems.add(name + ": unsupported parameter; annotate it with @Id, @VersionId or @SearchParam, or "
+                + "declare it as FhirRequest");
         return new Binding.Body();
     }
 
@@ -184,23 +190,25 @@ record Handler(Class<? extends Resource> resourceType, Class<?> beanClass, Map<I
             Class<? extends Resource> resourceType, String where, List<String> problems) {
         Class<?> raw = method.getReturnType();
         Type generic = method.getGenericReturnType();
+        boolean result = raw == FhirResult.class && isResource(elementType(generic), resourceType);
         boolean ok = switch (interaction) {
-            case READ, VREAD -> resourceType.isAssignableFrom(raw)
+            case READ, VREAD -> resourceType.isAssignableFrom(raw) || result
                     || (raw == Optional.class && isResource(elementType(generic), resourceType));
             case SEARCH -> (raw == List.class || raw == Collection.class || raw == Iterable.class
                     || raw == Stream.class) && isResource(elementType(generic), resourceType);
-            case CREATE -> resourceType.isAssignableFrom(raw);
-            case UPDATE -> resourceType.isAssignableFrom(raw)
+            case CREATE -> resourceType.isAssignableFrom(raw) || result;
+            case UPDATE -> resourceType.isAssignableFrom(raw) || result
                     || (raw == Saved.class && isResource(elementType(generic), resourceType));
-            case DELETE -> raw == void.class;
+            case DELETE -> raw == void.class
+                    || (raw == FhirResult.class && isResource(elementType(generic), Resource.class));
         };
         if (!ok) {
             String expected = switch (interaction) {
-                case READ, VREAD -> "T or Optional<T>";
+                case READ, VREAD -> "T, Optional<T> or FhirResult<T>";
                 case SEARCH -> "List<T>, Collection<T>, Iterable<T> or Stream<T>";
-                case CREATE -> "T";
-                case UPDATE -> "T or Saved<T>";
-                case DELETE -> "void";
+                case CREATE -> "T or FhirResult<T>";
+                case UPDATE -> "T, Saved<T> or FhirResult<T>";
+                case DELETE -> "void or FhirResult<R> with R any resource type";
             };
             problems.add(where + ": " + interaction.displayName() + " must return " + expected + " with T = "
                     + resourceType.getSimpleName() + ", not " + generic.getTypeName());

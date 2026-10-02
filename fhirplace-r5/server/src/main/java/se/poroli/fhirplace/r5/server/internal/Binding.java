@@ -11,6 +11,10 @@ sealed interface Binding {
     record VersionId() implements Binding {
     }
 
+    /** The whole request, for handlers that need its headers or base URL. */
+    record Request() implements Binding {
+    }
+
     /** The resource in the request body. */
     record Body() implements Binding {
     }

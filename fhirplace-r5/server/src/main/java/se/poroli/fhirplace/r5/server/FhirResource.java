@@ -12,6 +12,9 @@ import se.poroli.fhirplace.r5.Resource;
  * {@link VRead}, {@link Search}, {@link Create}, {@link Update} or {@link Delete} implement those interactions, and
  * the server serves them and lists them in its {@code CapabilityStatement} at {@code [base]/metadata}.
  *
+ * <p>Any interaction method may also declare a {@link FhirRequest} parameter to read the request's headers or base
+ * URL.
+ *
  * <p>The bean also needs a scope, normally {@code @ApplicationScoped}. Each resource type may have one handler, and
  * each interaction one method; the server checks the handlers at startup and fails deployment if one is invalid.
  */

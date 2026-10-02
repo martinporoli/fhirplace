@@ -33,6 +33,7 @@ import se.poroli.fhirplace.r5.server.FhirException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.FhirResponse;
+import se.poroli.fhirplace.r5.server.FhirResult;
 import se.poroli.fhirplace.r5.server.Saved;
 
 /** Implements the FHIR RESTful API on top of the validated handlers. Thread-safe. */
@@ -59,8 +60,10 @@ public final class Engine {
                             + handler.typeName()));
         }
 
-        Object call(HandlerMethod method, java.util.function.Function<Binding, Object> arguments) {
-            return method.invoke(instance, method.arguments(arguments));
+        /** Calls a handler method, supplying {@code FhirRequest} parameters and the rest through the function. */
+        Object call(Request request, HandlerMethod method, java.util.function.Function<Binding, Object> arguments) {
+            return method.invoke(instance, method.arguments(binding ->
+                    binding instanceof Binding.Request ? request.original : arguments.apply(binding)));
         }
     }
 
@@ -76,6 +79,44 @@ public final class Engine {
                 headers.put(name, List.of(value));
             }
             return this;
+        }
+
+        /** Returns this result with the given headers added, replacing headers of the same name. */
+        Result withHeaders(Map<String, List<String>> extra) {
+            Map<String, List<String>> merged = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            merged.putAll(headers);
+            merged.putAll(extra);
+            return new Result(status, new LinkedHashMap<>(merged), body);
+        }
+    }
+
+    /**
+     * What a handler method returned: the resource, whether an update created it, and the handler's own status and
+     * headers if it returned a {@link FhirResult}.
+     */
+    private record Returned(Resource resource, boolean created, boolean isEmpty, FhirResult<?> custom) {
+
+        static Returned of(Object value) {
+            return switch (value) {
+                case null -> new Returned(null, false, true, null);
+                case FhirResult<?> result -> new Returned(result.body(), false, false, result);
+                case Saved<?> saved -> new Returned(saved.resource(), saved.created(), false, null);
+                case Optional<?> optional -> optional.isEmpty() ? new Returned(null, false, true, null)
+                        : new Returned((Resource) optional.get(), false, false, null);
+                default -> new Returned((Resource) value, false, false, null);
+            };
+        }
+
+        Map<String, List<String>> headers() {
+            return custom == null ? Map.of() : custom.headers();
+        }
+
+        /** Applies the handler's status and headers, which take precedence over the server's defaults. */
+        Result customize(Result result) {
+            if (custom == null) {
+                return result;
+            }
+            return new Result(custom.status(), result.headers(), result.body()).withHeaders(custom.headers());
         }
     }
 
@@ -129,7 +170,7 @@ public final class Engine {
             format = Formats.negotiate(request);
             result = route(request);
         } catch (FhirException e) {
-            result = new Result(e.status(), e.outcome());
+            result = new Result(e.status(), new LinkedHashMap<>(e.headers()), e.outcome());
         }
         Map<String, List<String>> headers = new LinkedHashMap<>(result.headers());
         byte[] body = new byte[0];
@@ -178,7 +219,7 @@ public final class Engine {
             case 4 -> {
                 if (path.get(2).equals("_history")) {
                     requireMethod(method, "GET");
-                    return vread(handler, type, requireId(path.get(1)), path.get(3));
+                    return vread(request, handler, type, requireId(path.get(1)), path.get(3));
                 }
             }
             default -> {
@@ -199,8 +240,14 @@ public final class Engine {
     }
 
     private Result read(Request request, Registered handler, String type, String id) {
-        Resource resource = current(handler, handler.require(Interaction.READ), id)
-                .orElseThrow(() -> FhirException.notFound(type, id));
+        Returned returned = Returned.of(handler.call(request, handler.require(Interaction.READ), binding -> id));
+        if (returned.isEmpty()) {
+            throw FhirException.notFound(type, id);
+        }
+        Resource resource = returned.resource();
+        if (resource == null) {
+            return returned.customize(new Result(200, null));
+        }
         String ifNoneMatch = request.header("If-None-Match");
         String ifModifiedSince = request.header("If-Modified-Since");
         Instant lastModified = lastModified(resource);
@@ -208,29 +255,43 @@ public final class Engine {
                 ? matches(ifNoneMatch, resource)
                 : ifModifiedSince != null && lastModified != null
                         && parseHttpDate(ifModifiedSince).map(since -> !lastModified.isAfter(since)).orElse(false);
-        return versioned(new Result(notModified ? 304 : 200, notModified ? null : resource), resource);
+        Result result = versioned(new Result(notModified ? 304 : 200, notModified ? null : resource), resource);
+        return notModified ? result.withHeaders(returned.headers()) : returned.customize(result);
     }
 
-    private Result vread(Registered handler, String type, String id, String versionId) {
+    private Result vread(Request request, Registered handler, String type, String id, String versionId) {
         HandlerMethod vread = handler.require(Interaction.VREAD);
         if (!ID.matcher(versionId).matches()) {
             throw FhirException.invalid("'" + versionId + "' is not a valid version id");
         }
-        Resource resource = resource(handler.call(vread, binding -> binding instanceof Binding.Id ? id : versionId))
-                .orElseThrow(() -> new FhirException(404, IssueType.NOT_FOUND,
-                        type + "/" + id + "/_history/" + versionId + " is not known"));
-        return versioned(new Result(200, resource), resource);
+        Returned returned = Returned.of(handler.call(request, vread,
+                binding -> binding instanceof Binding.Id ? id : versionId));
+        if (returned.isEmpty()) {
+            throw new FhirException(404, IssueType.NOT_FOUND,
+                    type + "/" + id + "/_history/" + versionId + " is not known");
+        }
+        Resource resource = returned.resource();
+        return returned.customize(resource == null ? new Result(200, null) : versioned(new Result(200, resource),
+                resource));
     }
 
     private Result create(Request request, Registered handler, String type) {
         HandlerMethod create = handler.require(Interaction.CREATE);
         Resource body = body(request, handler);
-        Resource created = (Resource) handler.call(create, binding -> body);
-        if (created == null || created.id() == null || !ID.matcher(created.id()).matches()) {
+        Returned returned = Returned.of(handler.call(request, create, binding -> body));
+        Resource created = returned.resource();
+        if (created == null) {
+            if (returned.custom() == null) {
+                throw new IllegalStateException(create.method() + " must return the stored resource");
+            }
+            return returned.customize(new Result(201, null));
+        }
+        if (created.id() == null || !ID.matcher(created.id()).matches()) {
             throw new IllegalStateException(create.method() + " must return the stored resource with a valid id");
         }
         Result result = new Result(201, null).header("Location", location(request, type, created));
-        return preferredBody(request, versioned(result, created), created, "Created " + type + "/" + created.id());
+        return returned.customize(preferredBody(request, versioned(result, created), created,
+                "Created " + type + "/" + created.id()));
     }
 
     private Result update(Request request, Registered handler, String type, String id) {
@@ -244,31 +305,35 @@ public final class Engine {
                     + "'");
         }
         checkIfMatch(request, handler, type, id);
-        Object result = handler.call(update, binding -> binding instanceof Binding.Id ? id : body);
-        boolean created = result instanceof Saved<?> saved && saved.created();
-        Resource stored = result instanceof Saved<?> saved ? saved.resource() : (Resource) result;
+        Returned returned = Returned.of(handler.call(request, update,
+                binding -> binding instanceof Binding.Id ? id : body));
+        Resource stored = returned.resource();
         if (stored == null) {
-            throw new IllegalStateException(update.method() + " must return the stored resource");
+            if (returned.custom() == null) {
+                throw new IllegalStateException(update.method() + " must return the stored resource");
+            }
+            return returned.customize(new Result(200, null));
         }
+        boolean created = returned.created();
         Result response = new Result(created ? 201 : 200, null);
         if (created) {
             response.header("Location", location(request, type, stored));
         }
-        return preferredBody(request, versioned(response, stored), stored,
-                (created ? "Created " : "Updated ") + type + "/" + id);
+        return returned.customize(preferredBody(request, versioned(response, stored), stored,
+                (created ? "Created " : "Updated ") + type + "/" + id));
     }
 
     private Result delete(Request request, Registered handler, String type, String id) {
         HandlerMethod delete = handler.require(Interaction.DELETE);
         checkIfMatch(request, handler, type, id);
-        handler.call(delete, binding -> id);
-        return new Result(204, null);
+        Returned returned = Returned.of(handler.call(request, delete, binding -> id));
+        return returned.customize(new Result(204, returned.resource()));
     }
 
     private Result search(Request request, Registered handler, String type, Map<String, List<String>> parameters) {
         HandlerMethod search = handler.require(Interaction.SEARCH);
         boolean lenient = "lenient".equals(request.preferences().get("handling"));
-        SearchParameters.Bound bound = SearchParameters.bind(search, parameters, lenient);
+        SearchParameters.Bound bound = SearchParameters.bind(search, parameters, lenient, request.original);
         List<Resource> matches = results(search.invoke(handler.instance(), bound.arguments()));
         String self = request.base + type + (bound.used().isEmpty() ? "" : "?" + bound.query());
         Bundle.Builder bundle = Bundle.builder()
@@ -318,16 +383,12 @@ public final class Engine {
         }
         HandlerMethod read = handler.handler().method(Interaction.READ).orElseThrow(() -> FhirException.invalid(
                 "If-Match is not supported for " + type + " because it has no read interaction"));
-        Resource current = current(handler, read, id).orElse(null);
+        Resource current = Returned.of(handler.call(request, read, binding -> id)).resource();
         if (!matches(ifMatch, current)) {
             throw FhirException.preconditionFailed("If-Match " + ifMatch + " does not match the current version"
                     + (current == null ? "; " + type + "/" + id + " does not exist"
                             : " W/\"" + versionId(current) + "\""));
         }
-    }
-
-    private static Optional<Resource> current(Registered handler, HandlerMethod read, String id) {
-        return resource(handler.call(read, binding -> id));
     }
 
     private static Result preferredBody(Request request, Result result, Resource resource, String message) {
@@ -423,11 +484,6 @@ public final class Engine {
 
     private static FhirException notAllowed(String method) {
         return new FhirException(405, IssueType.NOT_SUPPORTED, "Method " + method + " is not allowed here");
-    }
-
-    private static Optional<Resource> resource(Object result) {
-        return result instanceof Optional<?> optional ? optional.map(Resource.class::cast)
-                : Optional.ofNullable((Resource) result);
     }
 
     private static List<Resource> results(Object result) {

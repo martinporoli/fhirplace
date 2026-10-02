@@ -15,6 +15,7 @@ import se.poroli.fhirplace.r5.server.FhirRequest;
 /** A {@link FhirRequest} with decoded path segments and parameters, and case-insensitive headers. */
 final class Request {
 
+    final FhirRequest original;
     final String method;
     final List<String> segments;
     final Map<String, List<String>> parameters;
@@ -23,6 +24,7 @@ final class Request {
     private final Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     Request(FhirRequest request) {
+        this.original = request;
         this.method = request.method().toUpperCase(Locale.ROOT);
         this.segments = new ArrayList<>();
         for (String segment : request.path().split("/")) {

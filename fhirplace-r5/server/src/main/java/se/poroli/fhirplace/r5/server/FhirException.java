@@ -1,5 +1,7 @@
 package se.poroli.fhirplace.r5.server;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import se.poroli.fhirplace.r5.datatypes.FhirString;
 import se.poroli.fhirplace.r5.operationoutcome.IssueSeverity;
@@ -7,8 +9,12 @@ import se.poroli.fhirplace.r5.operationoutcome.IssueType;
 import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
 
 /**
- * A failed FHIR interaction: the server answers with the HTTP status and the {@code OperationOutcome} as body.
- * Handlers throw it to report errors, typically through the static factories.
+ * A failed FHIR interaction: the server answers with the HTTP status, the {@code OperationOutcome} as body, and any
+ * extra headers. Handlers throw it to report errors, through the static factories or with their own outcome:
+ *
+ * <pre>{@code
+ * throw new FhirException(503, outcome, Map.of("Retry-After", List.of("120")));
+ * }</pre>
  */
 public final class FhirException extends RuntimeException {
 
@@ -16,6 +22,7 @@ public final class FhirException extends RuntimeException {
 
     private final int status;
     private final transient OperationOutcome outcome;
+    private final transient Map<String, List<String>> headers;
 
     /**
      * Creates the exception.
@@ -24,12 +31,24 @@ public final class FhirException extends RuntimeException {
      * @param outcome the outcome to return as body
      */
     public FhirException(int status, OperationOutcome outcome) {
+        this(status, outcome, Map.of());
+    }
+
+    /**
+     * Creates the exception with extra response headers, such as {@code Retry-After} or {@code WWW-Authenticate}.
+     *
+     * @param status the HTTP status, 400 to 599
+     * @param outcome the outcome to return as body
+     * @param headers headers to add to the response, by name
+     */
+    public FhirException(int status, OperationOutcome outcome, Map<String, List<String>> headers) {
         super(message(Objects.requireNonNull(outcome, "outcome")));
         if (status < 400 || status > 599) {
             throw new IllegalArgumentException("Not an error status: " + status);
         }
         this.status = status;
         this.outcome = outcome;
+        this.headers = FhirResult.copyHeaders(headers);
     }
 
     /**
@@ -119,6 +138,15 @@ public final class FhirException extends RuntimeException {
      */
     public int status() {
         return status;
+    }
+
+    /**
+     * Returns the extra response headers.
+     *
+     * @return the headers by name; empty if there are none
+     */
+    public Map<String, List<String>> headers() {
+        return headers;
     }
 
     /**

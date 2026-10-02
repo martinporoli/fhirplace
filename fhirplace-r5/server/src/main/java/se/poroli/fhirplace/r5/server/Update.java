@@ -10,7 +10,8 @@ import java.lang.annotation.Target;
  * Marks the handler method for the FHIR {@code update} interaction, {@code PUT [base]/[type]/[id]}.
  *
  * <p>The method takes an {@link Id} parameter and the new resource content as an unannotated parameter, and returns
- * the stored resource, or a {@link Saved} to tell whether the resource was created (201) rather than updated (200).
+ * the stored resource, a {@link Saved} to tell whether the resource was created (201) rather than updated (200), or
+ * a {@link FhirResult}.
  * The server rejects content whose id differs from the URL with 400, and checks {@code If-Match} against the current
  * version from the {@link Read} method (412 on mismatch).
  *

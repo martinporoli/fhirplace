@@ -58,6 +58,9 @@ public class PatientHandler {
 }
 ```
 
+Handlers can also answer with their own OperationOutcomes, statuses and headers, and read the request; see
+[custom responses](fhirplace-r5/server#custom-responses).
+
 Add `fhirplace-r5-server-jaxrs` (MicroProfile, Quarkus) or `fhirplace-r5-server-spring` (Spring Boot) and the handlers
 are served. Runnable references: [examples/quarkus](examples/quarkus) and [examples/spring-boot](examples/spring-boot).
 

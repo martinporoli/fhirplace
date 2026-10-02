@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * Marks the handler method for the FHIR {@code vread} interaction, {@code GET [base]/[type]/[id]/_history/[vid]}.
  *
  * <p>The method takes an {@link Id} and a {@link VersionId} parameter and returns the resource version, or an empty
- * {@code Optional} or {@code null} if there is none (404).
+ * {@code Optional} or {@code null} if there is none (404), or a {@link FhirResult}.
  *
  * @see <a href="https://hl7.org/fhir/R5/http.html#vread">FHIR R5 vread</a>
  */

@@ -31,4 +31,18 @@ public record FhirRequest(
         Objects.requireNonNull(body, "body");
         Objects.requireNonNull(base, "base");
     }
+
+    /**
+     * Returns the first value of a header.
+     *
+     * @param name the header name, matched case-insensitively
+     * @return the value, or {@code null} if the header is absent
+     */
+    public String header(String name) {
+        return headers.entrySet().stream()
+                .filter(entry -> entry.getKey().equalsIgnoreCase(name) && !entry.getValue().isEmpty())
+                .map(entry -> entry.getValue().getFirst())
+                .findFirst()
+                .orElse(null);
+    }
 }

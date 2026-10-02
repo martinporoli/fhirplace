@@ -31,6 +31,41 @@ The server takes care of the FHIR HTTP rules:
 
 Invalid handlers are reported when the server is built, which makes application startup fail.
 
+## Custom responses
+
+Throw `FhirException` with your own `OperationOutcome`, status and headers to answer with a specific error:
+
+```java
+@Read
+public Optional<Patient> read(@Id String id) {
+    if (archive.contains(id)) {
+        throw new FhirException(404, OperationOutcome.builder()
+                .addIssue(OperationOutcome.Issue.builder()
+                        .severity(IssueSeverity.ERROR)
+                        .code(IssueType.NOT_FOUND)
+                        .diagnostics(FhirString.of("Patient/" + id + " is archived; ask the records office"))
+                        .build())
+                .build());
+    }
+    if (overloaded()) {
+        throw new FhirException(503, outcome, Map.of("Retry-After", List.of("120")));
+    }
+    return store.find(id);   // Optional.empty() → the standard 404 OperationOutcome
+}
+```
+
+Return a `FhirResult` to choose the success status, body and headers; the server still adds `ETag`,
+`Last-Modified` and `Location` from the body. Declare a `FhirRequest` parameter to read the request's headers or
+base URL:
+
+```java
+@Delete
+public FhirResult<OperationOutcome> delete(@Id String id, FhirRequest request) {
+    deletions.schedule(id, request.header("X-Correlation-Id"));
+    return FhirResult.of(202, scheduledOutcome(id)).withHeader("X-Queue", "deletions");
+}
+```
+
 `FhirServer` is the engine the adapters use; another framework needs only an adapter that passes the raw request to
 `FhirServer.handle` and writes the response.
 

@@ -8,9 +8,13 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import se.poroli.fhirplace.r5.observation.Observation;
+import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
 import se.poroli.fhirplace.r5.patient.Patient;
 import se.poroli.fhirplace.r5.server.Create;
+import se.poroli.fhirplace.r5.server.Delete;
+import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
+import se.poroli.fhirplace.r5.server.FhirResult;
 import se.poroli.fhirplace.r5.server.Id;
 import se.poroli.fhirplace.r5.server.Read;
 import se.poroli.fhirplace.r5.server.Search;
@@ -50,12 +54,51 @@ class HandlerValidationTest {
         }
     }
 
+    @Vetoed
+    @FhirResource(Patient.class)
+    public static class WrongResult {
+        @Read
+        public FhirResult<Observation> read(@Id String id) {
+            return null;
+        }
+    }
+
+    @Vetoed
+    @FhirResource(Patient.class)
+    public static class CustomResults {
+        @Read
+        public FhirResult<Patient> read(@Id String id, FhirRequest request) {
+            return null;
+        }
+
+        @Delete
+        public FhirResult<OperationOutcome> delete(@Id String id) {
+            return null;
+        }
+    }
+
+    @Test
+    void acceptsFhirResultsAndRequestParameters() {
+        Handler handler = Handler.inspect(CustomResults.class);
+
+        assertTrue(handler.method(Interaction.READ).orElseThrow().bindings().contains(new Binding.Request()));
+        assertTrue(handler.method(Interaction.DELETE).isPresent());
+    }
+
+    @Test
+    void rejectsAResultOfAnotherResourceType() {
+        String message = assertThrows(IllegalStateException.class, () -> Handler.inspect(WrongResult.class))
+                .getMessage();
+
+        assertTrue(message.contains("@Read must return T, Optional<T> or FhirResult<T> with T = Patient"), message);
+    }
+
     @Test
     void reportsEveryProblemOfAHandler() {
         String message = assertThrows(IllegalStateException.class, () -> Handler.inspect(WrongTypes.class))
                 .getMessage();
 
-        assertTrue(message.contains("@Read must return T or Optional<T> with T = Patient"), message);
+        assertTrue(message.contains("@Read must return T, Optional<T> or FhirResult<T> with T = Patient"), message);
         assertTrue(message.contains("the request body parameter must be a Patient"), message);
         assertTrue(message.contains("a @SearchParam must be StringParam, TokenParam, DateParam or ReferenceParam"),
                 message);

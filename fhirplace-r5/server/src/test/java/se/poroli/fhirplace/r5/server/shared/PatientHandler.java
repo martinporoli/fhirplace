@@ -13,16 +13,23 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import se.poroli.fhirplace.r5.datatypes.CodeableConcept;
+import se.poroli.fhirplace.r5.datatypes.FhirString;
 import se.poroli.fhirplace.r5.datatypes.HumanName;
 import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.datatypes.Reference;
+import se.poroli.fhirplace.r5.operationoutcome.IssueSeverity;
+import se.poroli.fhirplace.r5.operationoutcome.IssueType;
+import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
 import se.poroli.fhirplace.r5.patient.Patient;
 import se.poroli.fhirplace.r5.server.Create;
 import se.poroli.fhirplace.r5.server.DateParam;
 import se.poroli.fhirplace.r5.server.Delete;
 import se.poroli.fhirplace.r5.server.FhirException;
+import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
+import se.poroli.fhirplace.r5.server.FhirResult;
 import se.poroli.fhirplace.r5.server.Id;
 import se.poroli.fhirplace.r5.server.Read;
 import se.poroli.fhirplace.r5.server.ReferenceParam;
@@ -44,8 +51,31 @@ public class PatientHandler {
     private final Set<String> deleted = ConcurrentHashMap.newKeySet();
     private final AtomicInteger ids = new AtomicInteger();
 
+    /** Patients with these ids exist only to show custom error responses. */
+    static final String ARCHIVED = "archived";
+    static final String BUSY = "busy";
+
     @Read
     public Optional<Patient> read(@Id String id) {
+        if (id.equals(ARCHIVED)) {
+            throw new FhirException(404, OperationOutcome.builder()
+                    .addIssue(OperationOutcome.Issue.builder()
+                            .severity(IssueSeverity.ERROR)
+                            .code(IssueType.NOT_FOUND)
+                            .details(CodeableConcept.builder().text("Patient is archived").build())
+                            .diagnostics(FhirString.of("Patient/archived was archived; ask the records office"))
+                            .build())
+                    .build());
+        }
+        if (id.equals(BUSY)) {
+            throw new FhirException(503, OperationOutcome.builder()
+                    .addIssue(OperationOutcome.Issue.builder()
+                            .severity(IssueSeverity.ERROR)
+                            .code(IssueType.TRANSIENT)
+                            .diagnostics(FhirString.of("Try again later"))
+                            .build())
+                    .build(), Map.of("Retry-After", List.of("120")));
+        }
         if (deleted.contains(id)) {
             throw FhirException.gone("Patient", id);
         }
@@ -60,9 +90,12 @@ public class PatientHandler {
                 .findFirst();
     }
 
+    /** Echoes the request's {@code X-Correlation-Id} header, to show reading the request and adding headers. */
     @Create
-    public Patient create(Patient patient) {
-        return store("p" + ids.incrementAndGet(), patient);
+    public FhirResult<Patient> create(Patient patient, FhirRequest request) {
+        FhirResult<Patient> result = FhirResult.of(201, store("p" + ids.incrementAndGet(), patient));
+        String correlationId = request.header("X-Correlation-Id");
+        return correlationId == null ? result : result.withHeader("X-Correlation-Id", correlationId);
     }
 
     @Update
@@ -72,12 +105,23 @@ public class PatientHandler {
         return created ? Saved.created(stored) : Saved.updated(stored);
     }
 
+    /** With {@code X-Delete-Mode: async}, answers 202 with an OperationOutcome, as an asynchronous delete would. */
     @Delete
-    public void delete(@Id String id) {
+    public FhirResult<OperationOutcome> delete(@Id String id, FhirRequest request) {
         if (!versions.containsKey(id)) {
             throw FhirException.notFound("Patient", id);
         }
         deleted.add(id);
+        if ("async".equals(request.header("X-Delete-Mode"))) {
+            return FhirResult.of(202, OperationOutcome.builder()
+                    .addIssue(OperationOutcome.Issue.builder()
+                            .severity(IssueSeverity.INFORMATION)
+                            .code(IssueType.INFORMATIONAL)
+                            .diagnostics(FhirString.of("Deletion of Patient/" + id + " is scheduled"))
+                            .build())
+                    .build());
+        }
+        return FhirResult.status(204);
     }
 
     @Search

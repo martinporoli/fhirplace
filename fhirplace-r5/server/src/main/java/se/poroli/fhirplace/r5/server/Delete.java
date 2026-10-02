@@ -9,7 +9,8 @@ import java.lang.annotation.Target;
 /**
  * Marks the handler method for the FHIR {@code delete} interaction, {@code DELETE [base]/[type]/[id]}.
  *
- * <p>The method takes an {@link Id} parameter and returns nothing; the server answers 204. {@code If-Match} is checked
+ * <p>The method takes an {@link Id} parameter and returns nothing, which the server answers with 204, or a
+ * {@link FhirResult} for another status or a body such as an {@code OperationOutcome}. {@code If-Match} is checked
  * against the current version from the {@link Read} method.
  *
  * @see <a href="https://hl7.org/fhir/R5/http.html#delete">FHIR R5 delete</a>

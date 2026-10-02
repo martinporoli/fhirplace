@@ -12,6 +12,7 @@ import java.util.StringJoiner;
 import se.poroli.fhirplace.r5.datatypes.FhirDateTime;
 import se.poroli.fhirplace.r5.server.DateParam;
 import se.poroli.fhirplace.r5.server.FhirException;
+import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.ReferenceParam;
 import se.poroli.fhirplace.r5.server.StringParam;
 import se.poroli.fhirplace.r5.server.TokenParam;
@@ -50,7 +51,8 @@ final class SearchParameters {
         }
     }
 
-    static Bound bind(HandlerMethod method, Map<String, List<String>> parameters, boolean lenient) {
+    static Bound bind(HandlerMethod method, Map<String, List<String>> parameters, boolean lenient,
+            FhirRequest request) {
         Map<String, List<Occurrence>> byName = new LinkedHashMap<>();
         for (Map.Entry<String, List<String>> parameter : parameters.entrySet()) {
             if (CONTROL.contains(parameter.getKey())) {
@@ -82,6 +84,9 @@ final class SearchParameters {
         }
         List<Occurrence> used = new ArrayList<>();
         Object[] arguments = method.arguments(binding -> {
+            if (binding instanceof Binding.Request) {
+                return request;
+            }
             Binding.Search search = (Binding.Search) binding;
             List<Occurrence> occurrences = byName.getOrDefault(search.name(), List.of());
             if (!search.repeating() && occurrences.size() > 1) {
