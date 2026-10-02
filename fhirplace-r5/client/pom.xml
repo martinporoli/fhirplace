@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>se.poroli.fhirplace</groupId>
+        <artifactId>fhirplace-r5-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>fhirplace-r5-client</artifactId>
+
+    <name>FhirPlace R5 Client</name>
+    <description>FHIR R5 RESTful client on the JDK's java.net.http.HttpClient.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-bundle</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-operationoutcome</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-server</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-server</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-patient</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-observation</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.parsson</groupId>
+            <artifactId>parsson</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <configuration>
+                            <compilerArgs>
+                                <!-- The tests run a fhirplace server on the JDK's HTTP server. -->
+                                <arg>--add-modules</arg>
+                                <arg>jdk.httpserver</arg>
+                                <arg>--add-reads</arg>
+                                <arg>se.poroli.fhirplace.r5.client=jdk.httpserver,ALL-UNNAMED</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

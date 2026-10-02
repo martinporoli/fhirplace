@@ -8,7 +8,7 @@ a lightweight alternative to HAPI FHIR:
 - **Small footprint.** Each resource is its own Maven module, so you depend only on the resources you use. The core
   has no mandatory third-party dependencies.
 - **Standard APIs.** FHIR JSON goes through Jakarta JSON Processing and JSON Binding, FHIR XML through StAX. The server
-  runs on MicroProfile (Jakarta REST + CDI), Quarkus and Spring Boot.
+  runs on MicroProfile (Jakarta REST + CDI), Quarkus and Spring Boot; the client is built on the JDK's `HttpClient`.
 - **Lossless.** Read and written FHIR JSON and XML round-trip without loss, verified against the official R5 examples.
 
 ## Model
@@ -33,6 +33,23 @@ String xml = FhirXml.write(patient);                         // FHIR XML with St
 Resource any = FhirXml.read(xml);                            // the type comes from the document
 
 String viaJsonb = JsonbBuilder.create().toJson(patient);     // JSON-B writes and reads FHIR JSON too
+```
+
+## Client
+
+A thin layer over the JDK's `HttpClient`: typed resources, FHIR search syntax, paging and errors as OperationOutcomes.
+Clients are cheap immutable values, so one per target server or request is fine.
+
+```java
+FhirClient fhir = FhirClient.of("https://example.org/fhir");
+
+Patient patient = fhir.read(Patient.class, "123").body();
+fhir.update(patient.toBuilder().active(true).build());          // If-Match from meta.versionId; 412 if stale
+
+try (Stream<Patient> all = fhir.searchAll(Patient.class,
+        Search.where("family", "Chalmers").and("birthdate", Search.ge(LocalDate.of(1970, 1, 1))))) {
+    all.forEach(System.out::println);                           // follows the Bundles' next links
+}
 ```
 
 ## Server
@@ -74,6 +91,7 @@ All artifacts have the group id `se.poroli.fhirplace`.
 | [`fhirplace-r5-<resource>`](fhirplace-r5/resources) | One module per resource, e.g. `fhirplace-r5-patient` |
 | [`fhirplace-r5-bom`](fhirplace-r5/bom) | Versions of all R5 artifacts |
 | [`fhirplace-r5-all`](fhirplace-r5/all) | Every resource at once (`<type>pom</type>`) |
+| [`fhirplace-r5-client`](fhirplace-r5/client) | FHIR RESTful client on the JDK's `HttpClient` |
 | [`fhirplace-r5-server`](fhirplace-r5/server) | Framework-independent FHIR server engine and handler API |
 | [`fhirplace-r5-server-jaxrs`](fhirplace-r5/server-jaxrs) | Server adapter for Jakarta REST + CDI (MicroProfile, Quarkus) |
 | [`fhirplace-r5-server-spring`](fhirplace-r5/server-spring) | Server adapter for Spring Boot |

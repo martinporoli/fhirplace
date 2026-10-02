@@ -8,6 +8,7 @@ The FHIR R5 modules of fhirplace. Applications depend on the few they need; the 
 | [resources](resources) | `fhirplace-r5-<resource>` | One module per FHIR R5 resource type (158) |
 | [bom](bom) | `fhirplace-r5-bom` | Bill of materials for all R5 artifacts |
 | [all](all) | `fhirplace-r5-all` | Depends on every resource module |
+| [client](client) | `fhirplace-r5-client` | FHIR RESTful client on the JDK's `HttpClient` |
 | [server](server) | `fhirplace-r5-server` | Framework-independent FHIR RESTful server and handler API |
 | [server-jaxrs](server-jaxrs) | `fhirplace-r5-server-jaxrs` | Server on Jakarta REST + CDI (MicroProfile, Quarkus) |
 | [server-spring](server-spring) | `fhirplace-r5-server-spring` | Server on Spring Boot |

@@ -20,6 +20,7 @@
         <module>core</module>
         <module>resources</module>
         <module>serialization-tests</module>
+        <module>client</module>
         <module>server</module>
         <module>server-jaxrs</module>
         <module>server-jaxrs-quarkus-tests</module>
