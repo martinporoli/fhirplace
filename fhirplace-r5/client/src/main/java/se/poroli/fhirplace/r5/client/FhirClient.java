@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -309,23 +310,30 @@ public final class FhirClient {
     }
 
     /**
-     * Searches resources of a type and returns all matches, fetching further pages through the Bundles'
-     * {@code next} links as the stream is consumed. Included resources and OperationOutcomes are left out.
+     * Searches resources of a type and returns all matches, fetching the pages, starting with the first, as the
+     * stream is consumed. Further pages come from the Bundles' {@code next} links, which are followed only on the
+     * client's own server (same scheme, host and port), since each request carries the client's headers, such as
+     * {@code Authorization}. Included resources and OperationOutcomes are left out.
      *
      * @param type the resource class
      * @param search the search parameters
      * @param <T> the resource type
      * @return the matches; close the stream, for example with try-with-resources, when not consuming it fully
      * @throws FhirClientException for an error status, when the page is fetched
+     * @throws IllegalStateException when a {@code next} link points to another server, when the stream reaches it
      */
     public <T extends Resource> Stream<T> searchAll(Class<T> type, SearchQuery search) {
         Iterator<T> matches = new Iterator<>() {
-            private Bundle page = search(type, search).body();
-            private Iterator<Bundle.Entry> entries = page.entry().iterator();
+            private Bundle page;
+            private Iterator<Bundle.Entry> entries;
             private T next;
 
             @Override
             public boolean hasNext() {
+                if (page == null) {
+                    page = search(type, search).body();
+                    entries = page.entry().iterator();
+                }
                 while (next == null) {
                     if (entries.hasNext()) {
                         Bundle.Entry entry = entries.next();
@@ -457,13 +465,35 @@ public final class FhirClient {
         return new FhirClientResponse<>(response.statusCode(), response.headers().map(), body);
     }
 
-    private static URI nextLink(Bundle bundle) {
-        return bundle.link().stream()
+    /** Returns the bundle's {@code next} link, resolved against the base URL, if it stays on this server. */
+    private URI nextLink(Bundle bundle) {
+        URI next = bundle.link().stream()
                 .filter(link -> link.relation() != null && "next".equals(link.relation().valueAsString())
                         && link.url() != null)
-                .map(link -> URI.create(link.url().value()))
+                .map(link -> baseUri.resolve(link.url().value()))
                 .findFirst()
                 .orElse(null);
+        if (next != null && !sameOrigin(next, baseUri)) {
+            throw new IllegalStateException("next link leaves the server: " + next);
+        }
+        return next;
+    }
+
+    private static boolean sameOrigin(URI a, URI b) {
+        return a.getScheme() != null && a.getScheme().equalsIgnoreCase(b.getScheme())
+                && a.getHost() != null && a.getHost().equalsIgnoreCase(b.getHost())
+                && port(a) == port(b);
+    }
+
+    private static int port(URI uri) {
+        if (uri.getPort() != -1) {
+            return uri.getPort();
+        }
+        return switch (uri.getScheme().toLowerCase(Locale.ROOT)) {
+            case "http" -> 80;
+            case "https" -> 443;
+            default -> -1;
+        };
     }
 
     @SuppressWarnings("unchecked")

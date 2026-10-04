@@ -23,6 +23,10 @@ fhir.readAsync(Patient.class, "123").thenAccept(response -> ...);       // async
 Bundle everything = fhir.send(fhir.request("Patient/123/$everything").GET(), Bundle.class).body();
 ```
 
+`searchAll` follows `next` links only on the client's own server (same scheme, host and port), because each request
+carries the client's headers, such as `Authorization`; a link to another server throws `IllegalStateException`. Relative
+links are resolved against the base URL.
+
 Error statuses throw `FhirClientException` with `status()`, `outcome()` (the server's OperationOutcome) and the
 response headers; a stale update, for example, fails with 412.
 
