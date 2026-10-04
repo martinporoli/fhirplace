@@ -24,6 +24,10 @@ public class FhirServerBean {
 
     private FhirServer server;
 
+    /** Creates the bean; the container creates it and injects the application's beans. */
+    public FhirServerBean() {
+    }
+
     /**
      * Builds the server when the application starts, so invalid handlers fail deployment.
      *

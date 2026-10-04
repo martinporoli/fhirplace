@@ -11,6 +11,10 @@
 
     <name>FhirPlace R5 BOM</name>
     <description>Bill of materials for the FHIR R5 model modules.</description>
+    <url>https://github.com/martinporoli/fhirplace</url>
+
+    <!-- No parent, so that importing the BOM brings only these versions. Metadata and the release profile repeat the
+         root pom's. -->
 
     <licenses>
         <license>
@@ -18,6 +22,20 @@
             <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <name>Martin Poroli</name>
+            <email>martin@poroli.se</email>
+            <url>https://github.com/martinporoli</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/martinporoli/fhirplace.git</connection>
+        <developerConnection>scm:git:git@github.com:martinporoli/fhirplace.git</developerConnection>
+        <url>https://github.com/martinporoli/fhirplace</url>
+    </scm>
 
     <dependencyManagement>
         <dependencies>
@@ -849,4 +867,45 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.8</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.11.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <waitUntil>validated</waitUntil>
+                            <deploymentName>fhirplace ${project.version}</deploymentName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

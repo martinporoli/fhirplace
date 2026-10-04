@@ -10,6 +10,7 @@ public final class ValidationException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     private final transient ValidationResult result;
+    /** The HTTP status to answer with. */
     private final int status;
 
     /**

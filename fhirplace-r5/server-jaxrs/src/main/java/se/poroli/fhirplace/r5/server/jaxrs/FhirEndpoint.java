@@ -27,6 +27,10 @@ public class FhirEndpoint {
     @Inject
     FhirServerBean server;
 
+    /** Creates the endpoint; the container creates it and injects the server. */
+    public FhirEndpoint() {
+    }
+
     /**
      * Handles {@code GET}.
      *

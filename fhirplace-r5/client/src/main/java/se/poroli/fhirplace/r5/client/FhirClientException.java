@@ -9,6 +9,7 @@ public final class FhirClientException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
+    /** The HTTP status the server answered with. */
     private final int status;
     private final transient OperationOutcome outcome;
     private final transient Map<String, List<String>> headers;

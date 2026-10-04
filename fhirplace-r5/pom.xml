@@ -19,18 +19,29 @@
     <modules>
         <module>core</module>
         <module>resources</module>
-        <module>serialization-tests</module>
         <module>client</module>
         <module>validation</module>
         <module>server</module>
         <module>server-jaxrs</module>
-        <module>server-jaxrs-quarkus-tests</module>
         <module>server-spring</module>
         <module>bom</module>
         <module>all</module>
     </modules>
 
     <profiles>
+        <profile>
+            <!-- Test-only modules, never published, so the release build leaves them out. -->
+            <id>tests</id>
+            <activation>
+                <property>
+                    <name>!release</name>
+                </property>
+            </activation>
+            <modules>
+                <module>serialization-tests</module>
+                <module>server-jaxrs-quarkus-tests</module>
+            </modules>
+        </profile>
         <profile>
             <!-- ./mvnw -Pbenchmarks -pl fhirplace-r5/benchmarks -am verify -DskipTests; see benchmarks/README.md. -->
             <id>benchmarks</id>

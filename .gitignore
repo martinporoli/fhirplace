@@ -43,3 +43,6 @@ AGENTS.md
 .gemini/
 GEMINI.md
 .github/copilot-instructions.md
+
+# Local maintainer notes
+RELEASING.md
