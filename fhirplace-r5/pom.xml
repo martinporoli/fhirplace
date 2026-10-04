@@ -30,6 +30,16 @@
         <module>all</module>
     </modules>
 
+    <profiles>
+        <profile>
+            <!-- ./mvnw -Pbenchmarks -pl fhirplace-r5/benchmarks -am verify -DskipTests; see benchmarks/README.md. -->
+            <id>benchmarks</id>
+            <modules>
+                <module>benchmarks</module>
+            </modules>
+        </profile>
+    </profiles>
+
     <dependencyManagement>
         <dependencies>
             <dependency>

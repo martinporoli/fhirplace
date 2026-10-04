@@ -124,6 +124,7 @@ import `fhirplace-r5-bom` to align the versions.
 ```
 
 Requires Java 21. The build compiles every module, runs all tests, and tests the examples without packaging them.
+JMH benchmarks are kept out of the normal build; see [fhirplace-r5/benchmarks](fhirplace-r5/benchmarks).
 
 ## License
 
