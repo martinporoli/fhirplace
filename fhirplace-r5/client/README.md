@@ -27,6 +27,9 @@ Bundle everything = fhir.send(fhir.request("Patient/123/$everything").GET(), Bun
 carries the client's headers, such as `Authorization`; a link to another server throws `IllegalStateException`. Relative
 links are resolved against the base URL.
 
+`request(path)` builds requests for interactions without a method of their own. The path is relative to the FHIR
+base, with or without a leading `/`; absolute URLs are rejected, so the client's headers never leave its server.
+
 Error statuses throw `FhirClientException` with `status()`, `outcome()` (the server's OperationOutcome) and the
 response headers; a stale update, for example, fails with 412.
 

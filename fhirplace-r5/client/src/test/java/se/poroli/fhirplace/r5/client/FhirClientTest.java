@@ -155,6 +155,17 @@ class FhirClientTest {
     }
 
     @Test
+    void requestPathsStayBelowTheBaseUrl() {
+        Patient patient = fhir.create(patient(unique())).body();
+        for (String path : List.of("Patient/" + patient.id(), "/Patient/" + patient.id())) {
+            assertEquals(patient, fhir.send(fhir.request(path).GET(), Patient.class).body(), path);
+        }
+        assertEquals(fhir.baseUri().resolve("other.example/metadata"),
+                fhir.request("//other.example/metadata").build().uri());
+        assertThrows(IllegalArgumentException.class, () -> fhir.request("https://other.example/metadata"));
+    }
+
+    @Test
     void derivedClientsShareTheHttpClient() {
         HttpClient http = HttpClient.newHttpClient();
         FhirClient a = FhirClient.of("https://a.example/fhir", http).withHeader("Authorization", "x");

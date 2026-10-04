@@ -399,11 +399,21 @@ public final class FhirClient {
      * Bundle everything = fhir.send(fhir.request("Patient/123/$everything").GET(), Bundle.class).body();
      * }</pre>
      *
+     * <p>The path is always relative to the base URL: a leading {@code /} is ignored, so {@code "/metadata"} and
+     * {@code "metadata"} are the same request. Absolute URLs are rejected, since the request carries the client's
+     * headers, such as {@code Authorization}; use {@link #at(String)} for another server.
+     *
      * @param path the path below the base URL, with any query string, URL-encoded
      * @return the builder
+     * @throws IllegalArgumentException if the path is an absolute URL or not a valid URI reference
      */
     public HttpRequest.Builder request(String path) {
-        return withHeaders(HttpRequest.newBuilder(baseUri.resolve(path)));
+        String relative = Objects.requireNonNull(path, "path").replaceFirst("^/+", "");
+        URI reference = URI.create(relative);
+        if (reference.isAbsolute()) {
+            throw new IllegalArgumentException("path must be relative to the base URL: " + path);
+        }
+        return withHeaders(HttpRequest.newBuilder(baseUri.resolve(reference)));
     }
 
     /**
