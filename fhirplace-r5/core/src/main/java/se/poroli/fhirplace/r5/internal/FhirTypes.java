@@ -5,7 +5,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import se.poroli.fhirplace.r5.Resource;
 import se.poroli.fhirplace.r5.datatypes.DataType;
@@ -22,6 +24,12 @@ public final class FhirTypes {
     private static final Pattern TYPE_NAME = Pattern.compile("[A-Z][A-Za-z0-9]*");
     private static final String MODEL_PACKAGE = "se.poroli.fhirplace.r5.";
     private static final String DATATYPES_PACKAGE = MODEL_PACKAGE + "datatypes.";
+
+    /**
+     * Datatypes found by {@link #dataType}. Only hits are kept: suffixes come from the content being read, so caching
+     * misses would let that content grow the map without bound.
+     */
+    private static final Map<String, Class<?>> DATA_TYPES = new ConcurrentHashMap<>();
 
     private static final ClassValue<Constructor<?>> PRIMITIVE_CONSTRUCTORS = new ClassValue<>() {
         @Override
@@ -94,12 +102,14 @@ public final class FhirTypes {
      * @return the datatype class, or {@code null} if there is none
      */
     public static Class<?> dataType(String typeName) {
-        if (!TYPE_NAME.matcher(typeName).matches()) {
-            return null;
+        Class<?> cached = DATA_TYPES.get(typeName);
+        if (cached != null || !TYPE_NAME.matcher(typeName).matches()) {
+            return cached;
         }
         for (String name : List.of(DATATYPES_PACKAGE + "Fhir" + typeName, DATATYPES_PACKAGE + typeName)) {
-            Class<?> type = load(name);
+            Class<?> type = loadDataType(name);
             if (type != null && DataType.class.isAssignableFrom(type) && type.isRecord() && type != FhirEnum.class) {
+                DATA_TYPES.putIfAbsent(typeName, type);
                 return type;
             }
         }
@@ -165,6 +175,15 @@ public final class FhirTypes {
             throw new IllegalStateException(e);
         } catch (InvocationTargetException e) {
             throw ModelInfo.unwrap(e);
+        }
+    }
+
+    /** Loads a class of core's datatypes package, which lives in core itself, with core's own class loader. */
+    private static Class<?> loadDataType(String className) {
+        try {
+            return Class.forName(className, false, FhirTypes.class.getClassLoader());
+        } catch (ClassNotFoundException e) {
+            return null;
         }
     }
 
