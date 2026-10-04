@@ -8,6 +8,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -36,19 +37,21 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
  * try (Stream<Patient> all = fhir.searchAll(Patient.class, SearchQuery.where("family", "Chalmers"))) { ... }
  * }</pre>
  *
- * <p>A client is an immutable value: the base URL, an {@code HttpClient}, default headers and a format. Creating or
- * deriving one ({@link #at(String)}, {@link #withHeader}) is cheap, so applications that talk to many servers may
- * create a client per request. The connections, threads and other expensive state belong to the {@code HttpClient},
- * which is shared: the one passed to {@link #of(String, HttpClient)}, or one default client for the whole application.
- * Clients are thread-safe.
+ * <p>A client is an immutable value: the base URL, an {@code HttpClient}, default headers, a format and an optional
+ * request timeout. Creating or deriving one ({@link #at(String)}, {@link #withHeader}, {@link #withTimeout}) is
+ * cheap, so applications that talk to many servers may create a client per request. The connections, threads and
+ * other expensive state belong to the {@code HttpClient}, which is shared: the one passed to
+ * {@link #of(String, HttpClient)}, or one default client for the whole application. Clients are thread-safe.
  *
- * <p>To configure HTTP, such as timeouts, TLS, proxies or the executor, build the {@code HttpClient} with the JDK's
- * {@link HttpClient#newBuilder()}, create one {@code FhirClient} with it, and derive the others from that one:
+ * <p>To configure HTTP, such as the connect timeout, TLS, proxies or the executor, build the {@code HttpClient} with
+ * the JDK's {@link HttpClient#newBuilder()}. The JDK sets the time to wait for a response per request, so set it on the
+ * {@code FhirClient} with {@link #withTimeout}. Create one {@code FhirClient} and derive the others from it:
  *
  * <pre>{@code
  * HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
- * FhirClient fhir = FhirClient.of("https://a.example/fhir", http);     // configured once, e.g. as a bean
- * fhir.at("https://b.example/fhir").read(Patient.class, "123");       // same HttpClient, headers and format
+ * FhirClient fhir = FhirClient.of("https://a.example/fhir", http)      // configured once, e.g. as a bean
+ *         .withTimeout(Duration.ofSeconds(30));
+ * fhir.at("https://b.example/fhir").read(Patient.class, "123");       // same HttpClient, headers, format, timeout
  * }</pre>
  *
  * <p>Error statuses raise {@link FhirClientException} with the server's OperationOutcome. Reading FHIR JSON needs a
@@ -60,13 +63,16 @@ public final class FhirClient {
     private final HttpClient http;
     private final Map<String, List<String>> headers;
     private final FhirFormat format;
+    private final Duration timeout;
 
-    private FhirClient(URI baseUri, HttpClient http, Map<String, List<String>> headers, FhirFormat format) {
+    private FhirClient(URI baseUri, HttpClient http, Map<String, List<String>> headers, FhirFormat format,
+            Duration timeout) {
         String base = Objects.requireNonNull(baseUri, "baseUri").toString();
         this.baseUri = URI.create(base.endsWith("/") ? base : base + "/");
         this.http = Objects.requireNonNull(http, "httpClient");
         this.headers = headers;
         this.format = format;
+        this.timeout = timeout;
     }
 
     /** Holds the default HttpClient, created on first use. */
@@ -96,7 +102,7 @@ public final class FhirClient {
 
     /**
      * Returns a client for a FHIR server that sends its requests with the given {@code HttpClient}, which carries the
-     * application's settings such as timeouts, TLS, proxies, redirects and executor.
+     * application's settings such as the connect timeout, TLS, proxies, redirects and executor.
      *
      * @param baseUri the FHIR base URL, such as {@code https://example.org/fhir}
      * @param httpClient the HTTP client, typically shared by all clients of the application
@@ -108,18 +114,18 @@ public final class FhirClient {
 
     /**
      * Returns a client for a FHIR server that sends its requests with the given {@code HttpClient}, which carries the
-     * application's settings such as timeouts, TLS, proxies, redirects and executor.
+     * application's settings such as the connect timeout, TLS, proxies, redirects and executor.
      *
      * @param baseUri the FHIR base URL
      * @param httpClient the HTTP client, typically shared by all clients of the application
      * @return the client
      */
     public static FhirClient of(URI baseUri, HttpClient httpClient) {
-        return new FhirClient(baseUri, httpClient, Map.of(), FhirFormat.JSON);
+        return new FhirClient(baseUri, httpClient, Map.of(), FhirFormat.JSON, null);
     }
 
     /**
-     * Returns a copy for another FHIR server, keeping the HTTP client, headers and format.
+     * Returns a copy for another FHIR server, keeping the HTTP client, headers, format and timeout.
      *
      * @param baseUri the other server's base URL, such as {@code https://b.example/fhir}
      * @return the new client
@@ -129,13 +135,13 @@ public final class FhirClient {
     }
 
     /**
-     * Returns a copy for another FHIR server, keeping the HTTP client, headers and format.
+     * Returns a copy for another FHIR server, keeping the HTTP client, headers, format and timeout.
      *
      * @param baseUri the other server's base URL
      * @return the new client
      */
     public FhirClient at(URI baseUri) {
-        return new FhirClient(baseUri, http, headers, format);
+        return new FhirClient(baseUri, http, headers, format, timeout);
     }
 
     /**
@@ -150,7 +156,7 @@ public final class FhirClient {
         List<String> values = new ArrayList<>(copy.getOrDefault(Objects.requireNonNull(name, "name"), List.of()));
         values.add(Objects.requireNonNull(value, "value"));
         copy.put(name, List.copyOf(values));
-        return new FhirClient(baseUri, http, java.util.Collections.unmodifiableMap(copy), format);
+        return new FhirClient(baseUri, http, java.util.Collections.unmodifiableMap(copy), format, timeout);
     }
 
     /**
@@ -160,7 +166,25 @@ public final class FhirClient {
      * @return the new client
      */
     public FhirClient withFormat(FhirFormat format) {
-        return new FhirClient(baseUri, http, headers, Objects.requireNonNull(format, "format"));
+        return new FhirClient(baseUri, http, headers, Objects.requireNonNull(format, "format"), timeout);
+    }
+
+    /**
+     * Returns a copy that waits at most the given time for each response; by default, a client waits indefinitely.
+     * It applies to every request the client builds, including those from {@link #request(String)} and each page
+     * {@link #searchAll} fetches. A request that times out fails with {@link java.net.http.HttpTimeoutException}:
+     * wrapped in {@link UncheckedIOException} when sent synchronously, as the cause of the failed future when sent
+     * asynchronously.
+     *
+     * @param timeout the time to wait for a response, positive
+     * @return the new client
+     * @throws IllegalArgumentException if the timeout is not positive
+     */
+    public FhirClient withTimeout(Duration timeout) {
+        if (Objects.requireNonNull(timeout, "timeout").isNegative() || timeout.isZero()) {
+            throw new IllegalArgumentException("Timeout must be positive: " + timeout);
+        }
+        return new FhirClient(baseUri, http, headers, format, timeout);
     }
 
     /**
@@ -368,8 +392,8 @@ public final class FhirClient {
     }
 
     /**
-     * Returns a request builder for a path below the base URL, with the client's headers and {@code Accept}, for
-     * interactions this class does not cover. Send it with {@link #send(HttpRequest.Builder, Class)}.
+     * Returns a request builder for a path below the base URL, with the client's headers, {@code Accept} and timeout,
+     * for interactions this class does not cover. Send it with {@link #send(HttpRequest.Builder, Class)}.
      *
      * <pre>{@code
      * Bundle everything = fhir.send(fhir.request("Patient/123/$everything").GET(), Bundle.class).body();
@@ -452,6 +476,9 @@ public final class FhirClient {
 
     private HttpRequest.Builder withHeaders(HttpRequest.Builder request) {
         request.header("Accept", format.mediaType());
+        if (timeout != null) {
+            request.timeout(timeout);
+        }
         headers.forEach((name, values) -> values.forEach(value -> request.header(name, value)));
         return request;
     }

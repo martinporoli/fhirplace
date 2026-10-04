@@ -31,19 +31,27 @@ Error statuses throw `FhirClientException` with `status()`, `outcome()` (the ser
 response headers; a stale update, for example, fails with 412.
 
 **Configuration and cheap clients.** A `FhirClient` is an immutable value: the base URL plus an `HttpClient`, default
-headers and a format. The expensive part, the `HttpClient` with its connections and threads, is shared:
-`FhirClient.of(url)` uses one default `HttpClient.newHttpClient()` for the whole application, and
-`FhirClient.of(url, httpClient)` uses yours. Configure HTTP (timeouts, TLS, proxies, executor) with the JDK's own
-builder, create one `FhirClient`, and derive the rest from it; deriving is cheap enough to do per request, e.g. in a
-proxy that routes to many servers.
+headers, a format and an optional request timeout. The expensive part, the `HttpClient` with its connections and
+threads, is shared: `FhirClient.of(url)` uses one default `HttpClient.newHttpClient()` for the whole application, and
+`FhirClient.of(url, httpClient)` uses yours. Configure HTTP (connect timeout, TLS, proxies, executor) with the JDK's
+own builder. The JDK sets the time to wait for a response per request, so set it on the `FhirClient` with
+`withTimeout`; it applies to every request the client sends, and by default a client waits indefinitely. Create one
+`FhirClient` and derive the rest from it; deriving is cheap enough to do per request, e.g. in a proxy that routes to
+many servers.
 
 ```java
 HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
-FhirClient fhir = FhirClient.of("https://a.example/fhir", http).withHeader("Authorization", "Bearer " + token);
+FhirClient fhir = FhirClient.of("https://a.example/fhir", http)
+        .withTimeout(Duration.ofSeconds(30))                           // default for every request
+        .withHeader("Authorization", "Bearer " + token);
 
-fhir.at("https://b.example/fhir").read(Patient.class, "123");          // same HttpClient, headers and format
+fhir.at("https://b.example/fhir").read(Patient.class, "123");          // same HttpClient, headers, format, timeout
 fhir.withFormat(FhirFormat.XML).read(Patient.class, "123");
+fhir.withTimeout(Duration.ofMinutes(2)).search(Patient.class, search);    // longer for one slow call
 ```
+
+A request that times out throws `UncheckedIOException` caused by `HttpTimeoutException`; an async call completes
+exceptionally with the `HttpTimeoutException`.
 
 With dependency injection, make the configured client a bean and inject it where needed:
 
@@ -53,14 +61,16 @@ public class FhirClients {
     @Produces @Singleton                            // not @ApplicationScoped: FhirClient is final, so no proxy
     FhirClient fhirClient() {
         return FhirClient.of("https://a.example/fhir",
-                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build())
+                .withTimeout(Duration.ofSeconds(30));
     }
 }
 
 @Bean                                               // Spring
 FhirClient fhirClient() {
     return FhirClient.of("https://a.example/fhir",
-            HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
+            HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build())
+            .withTimeout(Duration.ofSeconds(30));
 }
 ```
 
