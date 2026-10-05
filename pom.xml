@@ -7,7 +7,7 @@
 
     <groupId>se.poroli.fhirplace</groupId>
     <artifactId>fhirplace-parent</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <name>FhirPlace</name>
@@ -37,6 +37,14 @@
         <url>https://github.com/martinporoli/fhirplace</url>
     </scm>
 
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/martinporoli/fhirplace</url>
+        </repository>
+    </distributionManagement>
+
     <modules>
         <module>fhirplace-r5</module>
     </modules>
@@ -60,14 +68,13 @@
 
         <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
+        <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
         <maven-install-plugin.version>3.2.0</maven-install-plugin.version>
         <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
         <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
         <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
         <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
-        <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
-        <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -152,6 +159,11 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${maven-deploy-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
                     <version>${maven-install-plugin.version}</version>
                 </plugin>
@@ -190,7 +202,7 @@
             </modules>
         </profile>
         <profile>
-            <!-- -Drelease: deploys to Maven Central with sources, javadoc and signatures, for publishing in the portal. -->
+            <!-- -Drelease: deploys to GitHub Packages with sources and javadoc; see .github/workflows/release.yml. -->
             <id>release</id>
             <activation>
                 <property>
@@ -224,33 +236,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${maven-gpg-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.central</groupId>
-                        <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>${central-publishing-maven-plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <publishingServerId>central</publishingServerId>
-                            <!-- Upload and validate; publish by hand on central.sonatype.com after checking. -->
-                            <autoPublish>false</autoPublish>
-                            <waitUntil>validated</waitUntil>
-                            <deploymentName>fhirplace ${project.version}</deploymentName>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

@@ -7,7 +7,7 @@
     <parent>
         <groupId>se.poroli.fhirplace</groupId>
         <artifactId>fhirplace-r5-resources</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0</version>
     </parent>
 
     <artifactId>fhirplace-r5-goal</artifactId>

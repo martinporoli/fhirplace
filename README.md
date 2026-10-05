@@ -121,6 +121,55 @@ All artifacts have the group id `se.poroli.fhirplace`.
 A typical server that serves `Patient` needs `fhirplace-r5-server-jaxrs` (or `-spring`) and `fhirplace-r5-patient`;
 import `fhirplace-r5-bom` to align the versions.
 
+## Installing
+
+Releases are published to [GitHub Packages](https://github.com/martinporoli?tab=packages&repo_name=fhirplace), not
+Maven Central. GitHub Packages requires authentication even for public packages, so you need a
+[personal access token (classic)](https://github.com/settings/tokens) with the `read:packages` scope. Add it to
+`~/.m2/settings.xml`:
+
+```xml
+<settings>
+    <servers>
+        <server>
+            <id>github-fhirplace</id>
+            <username>your GitHub username</username>
+            <password>your token</password>
+        </server>
+    </servers>
+</settings>
+```
+
+Then add the repository and the dependencies to your `pom.xml`:
+
+```xml
+<repositories>
+    <repository>
+        <id>github-fhirplace</id>
+        <url>https://maven.pkg.github.com/martinporoli/fhirplace</url>
+    </repository>
+</repositories>
+
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-bom</artifactId>
+            <version>0.1.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+        <groupId>se.poroli.fhirplace</groupId>
+        <artifactId>fhirplace-r5-patient</artifactId>
+    </dependency>
+</dependencies>
+```
+
 ## Building
 
 ```
