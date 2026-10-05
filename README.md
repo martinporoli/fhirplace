@@ -11,6 +11,10 @@ a lightweight alternative to HAPI FHIR:
   runs on MicroProfile (Jakarta REST + CDI), Quarkus and Spring Boot; the client is built on the JDK's `HttpClient`.
 - **Lossless.** Read and written FHIR JSON and XML round-trip without loss, verified against the official R5 examples.
 
+> [!WARNING]
+> fhirplace is in early development and has not reached 1.0. The API can change in any release, including in ways that
+> break your code. Pin an exact version if you depend on it. Feedback and bug reports are very welcome.
+
 ## Model
 
 ```java
@@ -125,6 +129,11 @@ import `fhirplace-r5-bom` to align the versions.
 
 Requires Java 21. The build compiles every module, runs all tests, and tests the examples without packaging them.
 JMH benchmarks are kept out of the normal build; see [fhirplace-r5/benchmarks](fhirplace-r5/benchmarks).
+
+## Contributing
+
+Bug reports, questions and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Report security
+vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
