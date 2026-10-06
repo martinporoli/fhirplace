@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import se.poroli.fhirplace.r5.Resource;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 
 /**
  * A successful response chosen by a handler: its own 2xx status, body and extra headers. Handler methods for
@@ -13,7 +14,7 @@ import se.poroli.fhirplace.r5.Resource;
  *
  * <p>The server still adds what it derives from the body, such as {@code ETag}, {@code Last-Modified} and
  * {@code Location}, and applies {@code Prefer: return=}; the status and the headers set here take precedence. Report
- * errors with {@link FhirException} instead.
+ * errors with {@link FhirHttpException} instead.
  *
  * <pre>{@code
  * @Delete
@@ -37,7 +38,7 @@ public record FhirResult<T extends Resource>(int status, T body, Map<String, Lis
      */
     public FhirResult {
         if (status < 200 || status > 299) {
-            throw new IllegalArgumentException("Not a success status: " + status + "; throw FhirException instead");
+            throw new IllegalArgumentException("Not a success status: " + status + "; throw FhirHttpException instead");
         }
         headers = copyHeaders(headers);
     }

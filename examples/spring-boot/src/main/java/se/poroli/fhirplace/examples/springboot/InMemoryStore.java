@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import se.poroli.fhirplace.r5.Resource;
 import se.poroli.fhirplace.r5.datatypes.Meta;
-import se.poroli.fhirplace.r5.server.FhirException;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 
 /**
  * A versioned, in-memory resource store standing in for a database. It assigns ids, and sets {@code meta.versionId}
@@ -43,7 +43,7 @@ final class InMemoryStore<T extends Resource> {
     /** The current version; 410 Gone if deleted. */
     Optional<T> current(String id) {
         if (deleted.contains(id)) {
-            throw FhirException.gone(type, id);
+            throw FhirHttpException.gone(type, id);
         }
         List<T> history = versions.get(id);
         return history == null ? Optional.empty() : Optional.of(history.getLast());
@@ -80,7 +80,7 @@ final class InMemoryStore<T extends Resource> {
 
     void delete(String id) {
         if (!exists(id)) {
-            throw FhirException.notFound(type, id);
+            throw FhirHttpException.notFound(type, id);
         }
         deleted.add(id);
     }

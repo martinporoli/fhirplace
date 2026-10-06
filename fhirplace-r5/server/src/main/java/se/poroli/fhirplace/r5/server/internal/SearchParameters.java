@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import se.poroli.fhirplace.r5.datatypes.FhirDateTime;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.DateParam;
-import se.poroli.fhirplace.r5.server.FhirException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.ReferenceParam;
 import se.poroli.fhirplace.r5.server.StringParam;
@@ -80,11 +80,11 @@ final class SearchParameters {
         if (!lenient) {
             for (String name : byName.keySet()) {
                 if (UNSUPPORTED_RESULT.contains(name)) {
-                    throw FhirException.invalid("The result parameter '" + name + "' is not supported by this "
+                    throw FhirHttpException.invalid("The result parameter '" + name + "' is not supported by this "
                             + "server. Send 'Prefer: handling=lenient' to ignore unsupported parameters.");
                 }
                 if (!declared.contains(name)) {
-                    throw FhirException.invalid("Unknown search parameter '" + name + "'. Supported: "
+                    throw FhirHttpException.invalid("Unknown search parameter '" + name + "'. Supported: "
                             + new java.util.TreeSet<>(declared)
                             + ". Send 'Prefer: handling=lenient' to ignore unknown parameters.");
                 }
@@ -98,7 +98,7 @@ final class SearchParameters {
             Binding.Search search = (Binding.Search) binding;
             List<Occurrence> occurrences = byName.getOrDefault(search.name(), List.of());
             if (!search.repeating() && occurrences.size() > 1) {
-                throw FhirException.invalid("Search parameter '" + search.name() + "' may appear only once");
+                throw FhirHttpException.invalid("Search parameter '" + search.name() + "' may appear only once");
             }
             List<Object> values = new ArrayList<>();
             for (Occurrence occurrence : occurrences) {
@@ -130,7 +130,7 @@ final class SearchParameters {
                         .toList());
             }
         } catch (IllegalArgumentException e) {
-            throw FhirException.invalid("Invalid value '" + occurrence.value() + "' for search parameter '"
+            throw FhirHttpException.invalid("Invalid value '" + occurrence.value() + "' for search parameter '"
                     + occurrence.key() + "': " + e.getMessage());
         }
         throw new IllegalStateException("Unsupported search parameter type " + type);

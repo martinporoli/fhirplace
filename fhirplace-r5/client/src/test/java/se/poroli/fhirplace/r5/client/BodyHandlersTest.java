@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 import se.poroli.fhirplace.r5.datatypes.HumanName;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 
 /** The body handlers and publishers in plain {@code HttpClient} code, against a real fhirplace server. */
 class BodyHandlersTest {
@@ -40,7 +41,7 @@ class BodyHandlersTest {
                 HttpRequest.newBuilder(TestServers.fhir().resolve("Patient/archived")).build(),
                 FhirBodyHandlers.of(Patient.class)));
 
-        FhirClientException cause = assertInstanceOf(FhirClientException.class, e.getCause());
+        FhirHttpException cause = assertInstanceOf(FhirHttpException.class, e.getCause());
         assertEquals(404, cause.status());
         assertEquals("Patient is archived", cause.outcome().issue().getFirst().details().text().value());
     }

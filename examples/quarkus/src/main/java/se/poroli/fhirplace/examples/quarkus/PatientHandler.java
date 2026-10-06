@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import se.poroli.fhirplace.r5.datatypes.HumanName;
 import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.Create;
 import se.poroli.fhirplace.r5.server.DateParam;
 import se.poroli.fhirplace.r5.server.Delete;
@@ -23,6 +24,7 @@ import se.poroli.fhirplace.r5.server.TokenParam;
 import se.poroli.fhirplace.r5.server.Update;
 import se.poroli.fhirplace.r5.server.VRead;
 import se.poroli.fhirplace.r5.server.VersionId;
+import se.poroli.fhirplace.r5.validation.ValidationResult;
 
 /**
  * Serves {@code Patient} with all interactions fhirplace supports. Everything FHIR-specific in HTTP, such as status
@@ -51,14 +53,20 @@ public class PatientHandler {
     /** {@code POST /fhir/Patient}: answered with 201, {@code Location} and {@code ETag}. */
     @Create
     public Patient create(Patient patient) {
-        Profiles.PATIENT.validate(patient).throwIfInvalid();   // 422 with the profile's OperationOutcome
+        ValidationResult result = Profiles.PATIENT.validate(patient);
+        if (!result.isValid()) {
+            throw FhirHttpException.unprocessable(result.toOperationOutcome());
+        }
         return store.create(patient);
     }
 
     /** {@code PUT /fhir/Patient/{id}}: updates, or creates the patient under the client's id. */
     @Update
     public Saved<Patient> update(@Id String id, Patient patient) {
-        Profiles.PATIENT.validate(patient).throwIfInvalid();
+        ValidationResult result = Profiles.PATIENT.validate(patient);
+        if (!result.isValid()) {
+            throw FhirHttpException.unprocessable(result.toOperationOutcome());
+        }
         boolean exists = store.exists(id);
         Patient stored = store.save(id, patient);
         return exists ? Saved.updated(stored) : Saved.created(stored);

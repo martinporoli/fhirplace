@@ -6,14 +6,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Component;
-import se.poroli.fhirplace.r5.client.FhirClientException;
 import se.poroli.fhirplace.r5.client.FhirClientResponse;
 import se.poroli.fhirplace.r5.client.SearchQuery;
 import se.poroli.fhirplace.r5.operationoutcome.IssueType;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.Create;
 import se.poroli.fhirplace.r5.server.Delete;
-import se.poroli.fhirplace.r5.server.FhirException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.Id;
@@ -87,12 +86,12 @@ public class PatientRouter {
     private static <T> T forward(Supplier<T> call) {
         try {
             return call.get();
-        } catch (FhirClientException e) {
+        } catch (FhirHttpException e) {
             if (e.outcome() == null) {
-                throw new FhirException(502, IssueType.EXCEPTION, "The backend answered " + e.status());
+                throw new FhirHttpException(502, IssueType.EXCEPTION, "The backend answered " + e.status());
             }
             String retryAfter = e.header("Retry-After");
-            throw new FhirException(e.status(), e.outcome(),
+            throw new FhirHttpException(e.status(), e.outcome(),
                     retryAfter == null ? Map.of() : Map.of("Retry-After", List.of(retryAfter)));
         }
     }

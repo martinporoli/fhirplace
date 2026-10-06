@@ -14,11 +14,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import se.poroli.fhirplace.r5.client.FhirClient;
-import se.poroli.fhirplace.r5.client.FhirClientException;
 import se.poroli.fhirplace.r5.client.FhirClientResponse;
 import se.poroli.fhirplace.r5.client.SearchQuery;
 import se.poroli.fhirplace.r5.datatypes.HumanName;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 
 /** The proxy in front of two regional backends, each a real FHIR server. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -61,7 +61,7 @@ class ProxyTest {
         String id = created.body().id();
 
         assertEquals(created.body(), FhirClient.of(NORTH.base).read(Patient.class, id).body());
-        assertEquals(404, assertThrows(FhirClientException.class,
+        assertEquals(404, assertThrows(FhirHttpException.class,
                 () -> FhirClient.of(SOUTH.base).read(Patient.class, id)).status());
         assertTrue(created.location().toString().startsWith("http://localhost:" + port + "/fhir/Patient/" + id),
                 "Location points to the proxy");
@@ -74,11 +74,11 @@ class ProxyTest {
         Patient updated = north().update(patient.toBuilder().active(true).build()).body();
         assertEquals("2", updated.meta().versionId().value());
         assertEquals(updated, north().read(Patient.class, patient.id()).body());
-        assertEquals(412, assertThrows(FhirClientException.class,
+        assertEquals(412, assertThrows(FhirHttpException.class,
                 () -> north().update(patient.toBuilder().active(false).build())).status());   // stale version
 
         assertEquals(204, north().delete(Patient.class, patient.id()).status());
-        assertEquals(404, assertThrows(FhirClientException.class,
+        assertEquals(404, assertThrows(FhirHttpException.class,
                 () -> north().read(Patient.class, patient.id())).status());
     }
 
@@ -95,7 +95,7 @@ class ProxyTest {
 
     @Test
     void passesBackendErrorsOn() {
-        FhirClientException e = assertThrows(FhirClientException.class,
+        FhirHttpException e = assertThrows(FhirHttpException.class,
                 () -> north().read(Patient.class, "missing"));
 
         assertEquals(404, e.status());
@@ -113,8 +113,8 @@ class ProxyTest {
 
     @Test
     void requiresAKnownRegion() {
-        FhirClientException missing = assertThrows(FhirClientException.class, () -> proxy.create(patient(unique())));
-        FhirClientException unknown = assertThrows(FhirClientException.class,
+        FhirHttpException missing = assertThrows(FhirHttpException.class, () -> proxy.create(patient(unique())));
+        FhirHttpException unknown = assertThrows(FhirHttpException.class,
                 () -> proxy.withHeader("X-Region", "west").create(patient(unique())));
 
         assertEquals(400, missing.status());

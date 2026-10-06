@@ -1,6 +1,7 @@
 package se.poroli.fhirplace.r5.server.shared;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 import se.poroli.fhirplace.r5.json.FhirJson;
@@ -76,7 +77,8 @@ public class ContentValidationTest {
 
         assertEquals(422, reply.status());
         assertEquals("business-rule", issue(reply).code().valueAsString());
-        assertEquals("The family name Rejected is not accepted", issue(reply).diagnostics().value());
+        assertEquals("The family name Rejected is not accepted", issue(reply).details().text().value());
+        assertNull(issue(reply).diagnostics());
         assertEquals("Patient.name[0].family", expression(reply));
     }
 

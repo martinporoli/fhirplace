@@ -54,6 +54,11 @@
             </dependency>
             <dependency>
                 <groupId>se.poroli.fhirplace</groupId>
+                <artifactId>fhirplace-r5-rest</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>se.poroli.fhirplace</groupId>
                 <artifactId>fhirplace-r5-client</artifactId>
                 <version>${project.version}</version>
             </dependency>

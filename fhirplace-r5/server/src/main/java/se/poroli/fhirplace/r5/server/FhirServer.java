@@ -3,6 +3,7 @@ package se.poroli.fhirplace.r5.server;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.internal.Engine;
 
 /**
@@ -35,10 +36,12 @@ public final class FhirServer {
     }
 
     /**
-     * Handles one request. FHIR errors, including those thrown by handlers as {@link FhirException}, become
-     * responses with an OperationOutcome. Any other exception from a handler, and any resource that cannot be
-     * serialized in the negotiated format, is logged through {@link System.Logger} and answered with 500 and an
-     * OperationOutcome that does not reveal the exception.
+     * Handles one request. FHIR errors, including those thrown by handlers as {@link FhirHttpException}, become
+     * responses with the exception's status, headers and optional OperationOutcome. Any other exception from a
+     * handler, and any resource that cannot be serialized in the negotiated format, is logged through
+     * {@link System.Logger} and answered with 500 and an OperationOutcome that does not reveal the exception.
+     * Body framing, content type and encoding are controlled by the server and its adapter; supplied body headers
+     * and connection-specific headers are not forwarded.
      *
      * @param request the request
      * @return the response

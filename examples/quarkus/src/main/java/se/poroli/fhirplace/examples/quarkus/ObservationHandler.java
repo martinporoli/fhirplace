@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import se.poroli.fhirplace.r5.datatypes.Coding;
 import se.poroli.fhirplace.r5.observation.Observation;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.Create;
 import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.Id;
@@ -13,6 +14,7 @@ import se.poroli.fhirplace.r5.server.ReferenceParam;
 import se.poroli.fhirplace.r5.server.Search;
 import se.poroli.fhirplace.r5.server.SearchParam;
 import se.poroli.fhirplace.r5.server.TokenParam;
+import se.poroli.fhirplace.r5.validation.ValidationResult;
 
 /**
  * Serves {@code Observation} with a subset of the interactions: read, create and search. The server answers the
@@ -34,7 +36,10 @@ public class ObservationHandler {
     /** {@code POST /fhir/Observation}. */
     @Create
     public Observation create(Observation observation) {
-        Profiles.OBSERVATION.validate(observation).throwIfInvalid();
+        ValidationResult result = Profiles.OBSERVATION.validate(observation);
+        if (!result.isValid()) {
+            throw FhirHttpException.unprocessable(result.toOperationOutcome());
+        }
         return store.create(observation);
     }
 

@@ -7,7 +7,7 @@
 module se.poroli.fhirplace.r5.server {
     requires transitive se.poroli.fhirplace.r5;
     requires transitive se.poroli.fhirplace.r5.operationoutcome;
-    requires transitive se.poroli.fhirplace.r5.validation;
+    requires transitive se.poroli.fhirplace.r5.rest;
     requires se.poroli.fhirplace.r5.bundle;
     requires se.poroli.fhirplace.r5.capabilitystatement;
     requires jakarta.json;

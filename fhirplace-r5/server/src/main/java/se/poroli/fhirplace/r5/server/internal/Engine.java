@@ -30,14 +30,13 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.operationoutcome.IssueSeverity;
 import se.poroli.fhirplace.r5.operationoutcome.IssueType;
 import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
-import se.poroli.fhirplace.r5.server.FhirException;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.FhirResponse;
 import se.poroli.fhirplace.r5.server.FhirResult;
 import se.poroli.fhirplace.r5.server.FhirServer;
 import se.poroli.fhirplace.r5.server.Saved;
-import se.poroli.fhirplace.r5.validation.ValidationException;
 
 /** Implements the FHIR RESTful API on top of the validated handlers. Thread-safe. */
 public final class Engine {
@@ -59,7 +58,7 @@ public final class Engine {
     private record Registered(Handler handler, Object instance) {
 
         HandlerMethod require(Interaction interaction) {
-            return handler.method(interaction).orElseThrow(() -> new FhirException(405, IssueType.NOT_SUPPORTED,
+            return handler.method(interaction).orElseThrow(() -> new FhirHttpException(405, IssueType.NOT_SUPPORTED,
                     "The " + interaction.code().code() + " interaction is not supported for "
                             + handler.typeName()));
         }
@@ -173,10 +172,8 @@ public final class Engine {
             Request request = new Request(fhirRequest);
             format = Formats.negotiate(request);
             result = route(request);
-        } catch (FhirException e) {
+        } catch (FhirHttpException e) {
             result = new Result(e.status(), new LinkedHashMap<>(e.headers()), e.outcome());
-        } catch (ValidationException e) {
-            result = new Result(e.status(), e.result().toOperationOutcome());
         } catch (RuntimeException e) {
             LOG.log(System.Logger.Level.ERROR, "FHIR request " + fhirRequest.method() + " " + fhirRequest.path()
                     + " failed", e);
@@ -193,6 +190,21 @@ public final class Engine {
      */
     private FhirResponse serialize(Result result, Formats.Format format, FhirRequest fhirRequest) {
         Map<String, List<String>> headers = new LinkedHashMap<>(result.headers());
+        // A rethrown client error describes the backend's entity, not the bytes we are about to send.
+        for (Map.Entry<String, List<String>> header : result.headers().entrySet()) {
+            if (header.getKey().equalsIgnoreCase("Connection")) {
+                for (String value : header.getValue()) {
+                    for (String token : value.split(",")) {
+                        headers.keySet().removeIf(name -> name.equalsIgnoreCase(token.strip()));
+                    }
+                }
+            }
+        }
+        headers.keySet().removeIf(name -> switch (name.toLowerCase(Locale.ROOT)) {
+            case "content-length", "content-type", "content-encoding", "transfer-encoding", "trailer",
+                    "connection", "keep-alive", "proxy-connection", "te", "upgrade" -> true;
+            default -> false;
+        });
         byte[] body = new byte[0];
         if (result.body() != null) {
             try {
@@ -231,7 +243,7 @@ public final class Engine {
         List<String> path = request.segments;
         String method = request.method;
         if (path.isEmpty()) {
-            throw new FhirException(404, IssueType.NOT_SUPPORTED,
+            throw new FhirHttpException(404, IssueType.NOT_SUPPORTED,
                     "System-level interactions (batch, transaction, system search) are not supported");
         }
         if (path.size() == 1 && path.getFirst().equals("metadata")) {
@@ -272,14 +284,14 @@ public final class Engine {
                 // fall through to not found
             }
         }
-        throw new FhirException(404, IssueType.NOT_SUPPORTED, "Unknown or unsupported path '"
+        throw new FhirHttpException(404, IssueType.NOT_SUPPORTED, "Unknown or unsupported path '"
                 + String.join("/", path) + "'");
     }
 
     private Registered handler(String type) {
         Registered handler = handlers.get(type);
         if (handler == null) {
-            throw new FhirException(404, IssueType.NOT_SUPPORTED,
+            throw new FhirHttpException(404, IssueType.NOT_SUPPORTED,
                     "Resource type '" + type + "' is not supported by this server");
         }
         return handler;
@@ -288,7 +300,7 @@ public final class Engine {
     private Result read(Request request, Registered handler, String type, String id) {
         Returned returned = Returned.of(handler.call(request, handler.require(Interaction.READ), binding -> id));
         if (returned.isEmpty()) {
-            throw FhirException.notFound(type, id);
+            throw FhirHttpException.notFound(type, id);
         }
         Resource resource = returned.resource();
         if (resource == null) {
@@ -308,12 +320,12 @@ public final class Engine {
     private Result vread(Request request, Registered handler, String type, String id, String versionId) {
         HandlerMethod vread = handler.require(Interaction.VREAD);
         if (!ID.matcher(versionId).matches()) {
-            throw FhirException.invalid("'" + versionId + "' is not a valid version id");
+            throw FhirHttpException.invalid("'" + versionId + "' is not a valid version id");
         }
         Returned returned = Returned.of(handler.call(request, vread,
                 binding -> binding instanceof Binding.Id ? id : versionId));
         if (returned.isEmpty()) {
-            throw new FhirException(404, IssueType.NOT_FOUND,
+            throw new FhirHttpException(404, IssueType.NOT_FOUND,
                     type + "/" + id + "/_history/" + versionId + " is not known");
         }
         Resource resource = returned.resource();
@@ -344,10 +356,10 @@ public final class Engine {
         HandlerMethod update = handler.require(Interaction.UPDATE);
         Resource body = body(request, handler);
         if (body.id() == null) {
-            throw FhirException.invalid("The resource must have an id; it should be '" + id + "'");
+            throw FhirHttpException.invalid("The resource must have an id; it should be '" + id + "'");
         }
         if (!body.id().equals(id)) {
-            throw FhirException.invalid("The resource id '" + body.id() + "' does not match the URL id '" + id
+            throw FhirHttpException.invalid("The resource id '" + body.id() + "' does not match the URL id '" + id
                     + "'");
         }
         checkIfMatch(request, handler, type, id);
@@ -414,7 +426,7 @@ public final class Engine {
             return null;
         }
         if (values.size() > 1) {
-            throw FhirException.invalid(name + " may appear only once");
+            throw FhirHttpException.invalid(name + " may appear only once");
         }
         try {
             int value = Integer.parseInt(values.getFirst());
@@ -423,7 +435,7 @@ public final class Engine {
             }
             return value;
         } catch (NumberFormatException e) {
-            throw FhirException.invalid(name + " must be a non-negative integer, not '" + values.getFirst() + "'");
+            throw FhirHttpException.invalid(name + " must be a non-negative integer, not '" + values.getFirst() + "'");
         }
     }
 
@@ -446,7 +458,7 @@ public final class Engine {
         String contentType = request.header("Content-Type");
         if (request.body.length > 0 && (contentType == null
                 || !contentType.toLowerCase(Locale.ROOT).startsWith("application/x-www-form-urlencoded"))) {
-            throw new FhirException(415, IssueType.NOT_SUPPORTED,
+            throw new FhirHttpException(415, IssueType.NOT_SUPPORTED,
                     "_search expects an application/x-www-form-urlencoded body");
         }
         Map<String, List<String>> parameters = new LinkedHashMap<>(request.parameters);
@@ -458,7 +470,7 @@ public final class Engine {
     private static Resource body(Request request, Registered handler) {
         Resource body = Formats.read(request.body, request.header("Content-Type"));
         if (!handler.handler().resourceType().isInstance(body)) {
-            throw FhirException.invalid("Expected a " + handler.handler().typeName() + " but got a "
+            throw FhirHttpException.invalid("Expected a " + handler.handler().typeName() + " but got a "
                     + body.getClass().getSimpleName());
         }
         return body;
@@ -470,11 +482,11 @@ public final class Engine {
         if (ifMatch == null) {
             return;
         }
-        HandlerMethod read = handler.handler().method(Interaction.READ).orElseThrow(() -> FhirException.invalid(
+        HandlerMethod read = handler.handler().method(Interaction.READ).orElseThrow(() -> FhirHttpException.invalid(
                 "If-Match is not supported for " + type + " because it has no read interaction"));
         Resource current = Returned.of(handler.call(request, read, binding -> id)).resource();
         if (!matches(ifMatch, current)) {
-            throw FhirException.preconditionFailed("If-Match " + ifMatch + " does not match the current version"
+            throw FhirHttpException.preconditionFailed("If-Match " + ifMatch + " does not match the current version"
                     + (current == null ? "; " + type + "/" + id + " does not exist"
                             : " W/\"" + versionId(current) + "\""));
         }
@@ -560,7 +572,7 @@ public final class Engine {
 
     private static String requireId(String id) {
         if (!ID.matcher(id).matches()) {
-            throw FhirException.invalid("'" + id + "' is not a valid resource id");
+            throw FhirHttpException.invalid("'" + id + "' is not a valid resource id");
         }
         return id;
     }
@@ -571,8 +583,8 @@ public final class Engine {
         }
     }
 
-    private static FhirException notAllowed(String method) {
-        return new FhirException(405, IssueType.NOT_SUPPORTED, "Method " + method + " is not allowed here");
+    private static FhirHttpException notAllowed(String method) {
+        return new FhirHttpException(405, IssueType.NOT_SUPPORTED, "Method " + method + " is not allowed here");
     }
 
     private static List<Resource> results(Object result) {

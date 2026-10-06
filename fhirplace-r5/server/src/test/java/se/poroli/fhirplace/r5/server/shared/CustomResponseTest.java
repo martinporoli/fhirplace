@@ -1,6 +1,7 @@
 package se.poroli.fhirplace.r5.server.shared;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,22 @@ public class CustomResponseTest {
 
         assertEquals(503, reply.status());
         assertEquals("120", reply.header("Retry-After"));
+        assertTrue(reply.header("Content-Type").startsWith("application/fhir+json"));
+        assertNull(reply.header("Content-Encoding"));
+        assertNull(reply.header("X-Backend-Connection"));
         assertEquals("transient", Fixtures.outcome(reply).issue().getFirst().code().valueAsString());
+    }
+
+    @Test
+    void errorsCanOmitTheOutcome() {
+        TestServer.Reply reply = TestServer.get("Patient/" + PatientHandler.NO_OUTCOME);
+
+        assertEquals(503, reply.status());
+        assertEquals("120", reply.header("Retry-After"));
+        assertEquals("", reply.body());
+        assertNull(reply.header("Content-Type"));
+        assertNull(reply.header("Content-Encoding"));
+        assertNull(reply.header("X-Backend-Connection"));
     }
 
     @Test

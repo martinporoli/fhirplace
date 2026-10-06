@@ -11,13 +11,14 @@ import java.util.Locale;
 import se.poroli.fhirplace.r5.Resource;
 import se.poroli.fhirplace.r5.json.FhirJson;
 import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.xml.FhirXml;
 
 /**
  * Response body handlers for {@code java.net.http.HttpClient} that read FHIR JSON or XML, chosen by the response's
  * {@code Content-Type}.
  *
- * <p>For an error status (400 and above) the handler fails with a {@link FhirClientException} carrying the server's
+ * <p>For an error status (400 and above) the handler fails with a {@link FhirHttpException} carrying the server's
  * OperationOutcome: {@code HttpClient.send} throws it wrapped in an {@code IOException}, and {@code sendAsync}
  * completes with it. {@link FhirClient} unwraps it for you.
  */
@@ -55,7 +56,7 @@ public final class FhirBodyHandlers {
             } catch (IllegalArgumentException e) {
                 error = null;   // not FHIR content; the status still tells what happened
             }
-            throw new FhirClientException(status, error instanceof OperationOutcome outcome ? outcome : null,
+            throw new FhirHttpException(status, error instanceof OperationOutcome outcome ? outcome : null,
                     headers.map());
         }
         Resource resource = body.length == 0 ? null : parse(headers, body);

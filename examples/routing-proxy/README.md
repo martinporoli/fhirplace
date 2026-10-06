@@ -10,7 +10,9 @@ compiles and tests it but never packages or publishes it.
   `Authorization` header.
 - `PatientRouter` is an ordinary fhirplace handler whose methods call the backend. The fhirplace server still does
   the proxy's own HTTP: `Location` and Bundle links point to the proxy, `If-Match` is checked, and backend errors
-  come back with the backend's status and OperationOutcome.
+  come back with the backend's status and OperationOutcome. Both client and handler errors use
+  `se.poroli.fhirplace.r5.rest.FhirHttpException` from `fhirplace-r5-rest`. The router forwards only `Retry-After` from
+  error headers; a backend error without an OperationOutcome becomes a sanitized 502.
 
 ```java
 @Read

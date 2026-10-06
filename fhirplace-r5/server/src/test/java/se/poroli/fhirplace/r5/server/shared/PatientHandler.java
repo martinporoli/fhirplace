@@ -25,10 +25,10 @@ import se.poroli.fhirplace.r5.operationoutcome.IssueSeverity;
 import se.poroli.fhirplace.r5.operationoutcome.IssueType;
 import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.Create;
 import se.poroli.fhirplace.r5.server.DateParam;
 import se.poroli.fhirplace.r5.server.Delete;
-import se.poroli.fhirplace.r5.server.FhirException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.FhirResult;
@@ -44,6 +44,7 @@ import se.poroli.fhirplace.r5.server.Update;
 import se.poroli.fhirplace.r5.server.VRead;
 import se.poroli.fhirplace.r5.server.VersionId;
 import se.poroli.fhirplace.r5.validation.Issue;
+import se.poroli.fhirplace.r5.validation.ValidationResult;
 import se.poroli.fhirplace.r5.validation.Validator;
 import se.poroli.fhirplace.r5.valuesets.NarrativeStatus;
 
@@ -59,13 +60,23 @@ public class PatientHandler {
     /** Patients with these ids exist only to show custom error responses. */
     static final String ARCHIVED = "archived";
     static final String BUSY = "busy";
+    static final String NO_OUTCOME = "no-outcome";
     static final String CRASH = "crash";
     static final String BROKEN = "broken";
+
+    private static final Map<String, List<String>> BACKEND_ERROR_HEADERS = Map.of(
+            "Retry-After", List.of("120"),
+            "cOnTeNt-LeNgTh", List.of("1234"),
+            "cOnTeNt-EnCoDiNg", List.of("gzip"),
+            "content-type", List.of("text/html"),
+            "Transfer-Encoding", List.of("chunked"),
+            "Connection", List.of("Keep-Alive, X-Backend-Connection"),
+            "X-Backend-Connection", List.of("opaque"));
 
     @Read
     public Optional<Patient> read(@Id String id) {
         if (id.equals(ARCHIVED)) {
-            throw new FhirException(404, OperationOutcome.builder()
+            throw new FhirHttpException(404, OperationOutcome.builder()
                     .addIssue(OperationOutcome.Issue.builder()
                             .severity(IssueSeverity.ERROR)
                             .code(IssueType.NOT_FOUND)
@@ -87,16 +98,19 @@ public class PatientHandler {
                     .build());
         }
         if (id.equals(BUSY)) {
-            throw new FhirException(503, OperationOutcome.builder()
+            throw new FhirHttpException(503, OperationOutcome.builder()
                     .addIssue(OperationOutcome.Issue.builder()
                             .severity(IssueSeverity.ERROR)
                             .code(IssueType.TRANSIENT)
                             .diagnostics(FhirString.of("Try again later"))
                             .build())
-                    .build(), Map.of("Retry-After", List.of("120")));
+                    .build(), BACKEND_ERROR_HEADERS);
+        }
+        if (id.equals(NO_OUTCOME)) {
+            throw new FhirHttpException(503, null, BACKEND_ERROR_HEADERS);
         }
         if (deleted.contains(id)) {
-            throw FhirException.gone("Patient", id);
+            throw FhirHttpException.gone("Patient", id);
         }
         List<Patient> history = versions.get(id);
         return history == null ? Optional.empty() : Optional.of(history.getLast());
@@ -125,7 +139,10 @@ public class PatientHandler {
      */
     @Create
     public FhirResult<Patient> create(Patient patient, FhirRequest request) {
-        PROFILE.validate(patient).throwIfInvalid();
+        ValidationResult validation = PROFILE.validate(patient);
+        if (!validation.isValid()) {
+            throw FhirHttpException.unprocessable(validation.toOperationOutcome());
+        }
         FhirResult<Patient> result = FhirResult.of(201, store("p" + ids.incrementAndGet(), patient));
         String correlationId = request.header("X-Correlation-Id");
         return correlationId == null ? result : result.withHeader("X-Correlation-Id", correlationId);
@@ -142,7 +159,7 @@ public class PatientHandler {
     @Delete
     public FhirResult<OperationOutcome> delete(@Id String id, FhirRequest request) {
         if (!versions.containsKey(id)) {
-            throw FhirException.notFound("Patient", id);
+            throw FhirHttpException.notFound("Patient", id);
         }
         deleted.add(id);
         if ("async".equals(request.header("X-Delete-Mode"))) {

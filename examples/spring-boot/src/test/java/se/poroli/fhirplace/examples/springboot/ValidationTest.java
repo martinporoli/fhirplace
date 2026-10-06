@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import se.poroli.fhirplace.r5.client.FhirClient;
-import se.poroli.fhirplace.r5.client.FhirClientException;
 import se.poroli.fhirplace.r5.datatypes.CodeableConcept;
 import se.poroli.fhirplace.r5.datatypes.Coding;
 import se.poroli.fhirplace.r5.datatypes.HumanName;
@@ -22,6 +21,7 @@ import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.observation.Observation;
 import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.valuesets.ObservationStatus;
 
 /** What clients see when a resource breaks the base FHIR rules or this server's profiles. */
@@ -42,7 +42,7 @@ class ValidationTest {
         return FhirClient.of(base);
     }
 
-    private static OperationOutcome.Issue firstIssue(FhirClientException e) {
+    private static OperationOutcome.Issue firstIssue(FhirHttpException e) {
         return e.outcome().issue().getFirst();
     }
 
@@ -65,24 +65,24 @@ class ValidationTest {
         Patient bornTomorrow = Patient.builder().addName(HumanName.builder().family("Early").build())
                 .birthDate(LocalDate.now().plusDays(1)).build();
 
-        FhirClientException family = assertThrows(FhirClientException.class, () -> fhir().create(withoutFamily));
-        FhirClientException birth = assertThrows(FhirClientException.class, () -> fhir().create(bornTomorrow));
+        FhirHttpException family = assertThrows(FhirHttpException.class, () -> fhir().create(withoutFamily));
+        FhirHttpException birth = assertThrows(FhirHttpException.class, () -> fhir().create(bornTomorrow));
 
         assertEquals(422, family.status());
-        assertEquals("Family name is required", firstIssue(family).diagnostics().value());
+        assertEquals("Family name is required", firstIssue(family).details().text().value());
         assertEquals("Patient.name[0].family", expression(firstIssue(family)));
-        assertEquals("Birth date cannot be in the future", firstIssue(birth).diagnostics().value());
+        assertEquals("Birth date cannot be in the future", firstIssue(birth).details().text().value());
         assertEquals("Patient.birthDate", expression(firstIssue(birth)));
     }
 
     @Test
     void theOutcomeListsAllIssuesIncludingWarnings() {
-        FhirClientException e = assertThrows(FhirClientException.class,
+        FhirHttpException e = assertThrows(FhirHttpException.class,
                 () -> fhir().create(Patient.builder().active(true).build()));
 
         assertEquals(List.of("error", "warning"), e.outcome().issue().stream()
                 .map(issue -> issue.severity().valueAsString()).toList());
-        assertEquals("Patients should have a medical record number", e.outcome().issue().get(1).diagnostics().value());
+        assertEquals("Patients should have a medical record number", e.outcome().issue().get(1).details().text().value());
     }
 
     @Test
@@ -94,20 +94,20 @@ class ValidationTest {
 
     @Test
     void observationsFollowTheirProfile() {
-        FhirClientException noPatient = assertThrows(FhirClientException.class,
+        FhirHttpException noPatient = assertThrows(FhirHttpException.class,
                 () -> fhir().create(heartRate().subject(Reference.builder().reference("Group/1").build()).build()));
-        FhirClientException wrongUnit = assertThrows(FhirClientException.class,
+        FhirHttpException wrongUnit = assertThrows(FhirHttpException.class,
                 () -> fhir().create(heartRate().value(Quantity.builder().value(new BigDecimal("1.2")).unit("Hz")
                         .build()).build()));
 
         assertEquals("Observation.subject", expression(firstIssue(noPatient)));
-        assertEquals("A heart rate must be a quantity in beats/minute", firstIssue(wrongUnit).diagnostics().value());
+        assertEquals("A heart rate must be a quantity in beats/minute", firstIssue(wrongUnit).details().text().value());
         assertEquals(201, fhir().create(heartRate().build()).status());
     }
 
     @Test
     void contentThatBreaksTheBaseRulesIsRejectedBeforeTheProfile() {
-        FhirClientException e = assertThrows(FhirClientException.class, () -> fhir().send(
+        FhirHttpException e = assertThrows(FhirHttpException.class, () -> fhir().send(
                 fhir().request("Patient").header("Content-Type", "application/fhir+json")
                         .POST(HttpRequest.BodyPublishers.ofString(
                                 "{\"resourceType\":\"Patient\",\"birthDate\":\"1974-13-45\"}")),

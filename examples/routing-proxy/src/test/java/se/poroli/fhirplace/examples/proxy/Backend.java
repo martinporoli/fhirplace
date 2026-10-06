@@ -17,9 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import se.poroli.fhirplace.r5.datatypes.Meta;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.Create;
 import se.poroli.fhirplace.r5.server.Delete;
-import se.poroli.fhirplace.r5.server.FhirException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 import se.poroli.fhirplace.r5.server.FhirResource;
 import se.poroli.fhirplace.r5.server.FhirResponse;
@@ -98,7 +98,7 @@ final class Backend {
         @Delete
         public void delete(@Id String id) {
             if (patients.remove(id) == null) {
-                throw FhirException.notFound("Patient", id);
+                throw FhirHttpException.notFound("Patient", id);
             }
         }
 

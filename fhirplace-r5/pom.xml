@@ -19,6 +19,7 @@
     <modules>
         <module>core</module>
         <module>resources</module>
+        <module>rest</module>
         <module>client</module>
         <module>validation</module>
         <module>server</module>

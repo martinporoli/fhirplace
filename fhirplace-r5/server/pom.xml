@@ -22,6 +22,11 @@
         </dependency>
         <dependency>
             <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
             <artifactId>fhirplace-r5-bundle</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -35,17 +40,18 @@
             <artifactId>fhirplace-r5-capabilitystatement</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>se.poroli.fhirplace</groupId>
-            <artifactId>fhirplace-r5-validation</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>jakarta.json</groupId>
             <artifactId>jakarta.json-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-validation</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>se.poroli.fhirplace</groupId>
             <artifactId>fhirplace-r5-patient</artifactId>

@@ -11,6 +11,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import se.poroli.fhirplace.r5.datatypes.CodeableConcept;
+import se.poroli.fhirplace.r5.datatypes.FhirString;
 import se.poroli.fhirplace.r5.operationoutcome.IssueSeverity;
 
 /**
@@ -26,13 +28,18 @@ import se.poroli.fhirplace.r5.operationoutcome.IssueSeverity;
  *                 .build())
  *         .build();
  *
- * SE_PATIENT.validate(patient).throwIfInvalid();   // in a server handler: 422 with an OperationOutcome
+ * ValidationResult result = SE_PATIENT.validate(patient);
+ * // In a server handler, using se.poroli.fhirplace.r5.rest.FhirHttpException:
+ * if (!result.isValid()) {
+ *     throw FhirHttpException.unprocessable(result.toOperationOutcome());
+ * }
  * }</pre>
  *
  * <p>A validator is immutable and thread-safe, so it can be a shared constant. Issues are located with FHIRPath-style
  * expressions that start at the validated type, such as {@code Patient.name[1].family}. Every rule has an id, unique
- * within the validator, by which {@link #withMessage}, {@link #withSeverity} and {@link #without} adjust validators
- * that are reused rather than written.
+ * within the validator, by which {@link #withMessage}, {@link #withDetails}, {@link #withSeverity} and {@link #without}
+ * adjust validators that are reused rather than written. Validation returns results independently of HTTP; callers
+ * decide how to handle invalid results.
  *
  * @param <T> the validated type
  */
@@ -156,9 +163,9 @@ public final class Validator<T> {
 
     private static Issue locate(Issue issue, String ruleId, String path) {
         String relative = issue.expression();
-        String expression = relative == null || relative.isEmpty() ? path
+        String expression = relative == null ? path
                 : relative.startsWith("[") ? path + relative : path + "." + relative;
-        return new Issue(ruleId, issue.severity(), issue.code(), issue.message(), expression);
+        return new Issue(ruleId, issue.severity(), issue.code(), issue.details(), issue.diagnostics(), expression);
     }
 
     /**
@@ -173,17 +180,42 @@ public final class Validator<T> {
     }
 
     /**
-     * Returns a validator that reports a rule's issues with another message.
+     * Returns a validator that changes the text of a rule's issue details, preserving coding, other concept metadata
+     * and diagnostics.
      *
      * @param ruleId the rule's id, here or in a validator this one uses for elements
-     * @param message the new message
+     * @param message the new text; empty to clear it, leaving details absent if no other concept content remains
      * @return the adjusted validator
      * @throws IllegalArgumentException if there is no such rule
+     * @throws NullPointerException if the message is {@code null}
      */
     public Validator<T> withMessage(String ruleId, String message) {
         Objects.requireNonNull(message, "message");
-        return adjust(ruleId, issue -> new Issue(issue.ruleId(), issue.severity(), issue.code(), message,
-                issue.expression()));
+        return adjust(ruleId, issue -> {
+            CodeableConcept details = issue.details();
+            FhirString text = message.isEmpty() ? null : FhirString.of(message);
+            if (text == null && (details == null
+                    || details.id() == null && details.extension().isEmpty() && details.coding().isEmpty())) {
+                details = null;
+            } else {
+                details = (details == null ? CodeableConcept.builder() : details.toBuilder()).text(text).build();
+            }
+            return new Issue(issue.ruleId(), issue.severity(), issue.code(), details, issue.diagnostics(),
+                    issue.expression());
+        });
+    }
+
+    /**
+     * Returns a validator that replaces or clears a rule's issue details, preserving diagnostics and other fields.
+     *
+     * @param ruleId the rule's id, here or in a validator this one uses for elements
+     * @param details the new details, or {@code null} to clear them
+     * @return the adjusted validator
+     * @throws IllegalArgumentException if there is no such rule
+     */
+    public Validator<T> withDetails(String ruleId, CodeableConcept details) {
+        return adjust(ruleId, issue -> new Issue(issue.ruleId(), issue.severity(), issue.code(), details,
+                issue.diagnostics(), issue.expression()));
     }
 
     /**
@@ -196,8 +228,8 @@ public final class Validator<T> {
      */
     public Validator<T> withSeverity(String ruleId, IssueSeverity severity) {
         Objects.requireNonNull(severity, "severity");
-        return adjust(ruleId, issue -> new Issue(issue.ruleId(), severity, issue.code(), issue.message(),
-                issue.expression()));
+        return adjust(ruleId, issue -> new Issue(issue.ruleId(), severity, issue.code(), issue.details(),
+                issue.diagnostics(), issue.expression()));
     }
 
     /**

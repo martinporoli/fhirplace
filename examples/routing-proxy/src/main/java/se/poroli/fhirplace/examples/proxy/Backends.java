@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import se.poroli.fhirplace.r5.client.FhirClient;
-import se.poroli.fhirplace.r5.server.FhirException;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 
 /** The regional FHIR servers, from {@code proxy.backends.<region>=<base URL>}. */
@@ -34,11 +34,11 @@ public class Backends {
     public FhirClient clientFor(FhirRequest request) {
         String region = request.header("X-Region");
         if (region == null) {
-            throw FhirException.invalid("The X-Region header is required; one of " + regions.keySet());
+            throw FhirHttpException.invalid("The X-Region header is required; one of " + regions.keySet());
         }
         URI backend = regions.get(region);
         if (backend == null) {
-            throw FhirException.invalid("Unknown region '" + region + "'; one of " + regions.keySet());
+            throw FhirHttpException.invalid("Unknown region '" + region + "'; one of " + regions.keySet());
         }
         FhirClient client = template.at(backend);
         String authorization = request.header("Authorization");

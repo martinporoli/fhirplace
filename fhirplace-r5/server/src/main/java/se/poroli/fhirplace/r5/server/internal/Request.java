@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import se.poroli.fhirplace.r5.server.FhirException;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.server.FhirRequest;
 
 /** A {@link FhirRequest} with decoded path segments and parameters, and case-insensitive headers. */
@@ -91,7 +91,7 @@ final class Request {
         try {
             return URLDecoder.decode(value, StandardCharsets.UTF_8);
         } catch (IllegalArgumentException e) {
-            throw FhirException.invalid("Malformed URL encoding in '" + value + "'");
+            throw FhirHttpException.invalid("Malformed URL encoding in '" + value + "'");
         }
     }
 
@@ -100,7 +100,7 @@ final class Request {
         try {
             return URLDecoder.decode(segment.replace("+", "%2B"), StandardCharsets.UTF_8);
         } catch (IllegalArgumentException e) {
-            throw FhirException.invalid("Malformed URL encoding in '" + segment + "'");
+            throw FhirHttpException.invalid("Malformed URL encoding in '" + segment + "'");
         }
     }
 }

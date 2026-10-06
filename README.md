@@ -43,7 +43,8 @@ String viaJsonb = JsonbBuilder.create().toJson(patient);     // JSON-B writes an
 
 The base FHIR rules are enforced when a resource is read or built; invalid content raises `FhirFormatException`, which
 says what is wrong and where (`Patient.contact[1].gender`). Profiles and business rules are plain Java, fast, and yours
-to word:
+to word. Add `fhirplace-r5-validation` directly to use them; the server does not depend on it. Validation returns
+issues and an OperationOutcome; the handler decides whether to reject the request:
 
 ```java
 static final Validator<Patient> SE_PATIENT = Validator.builder(Patient.class)
@@ -51,13 +52,22 @@ static final Validator<Patient> SE_PATIENT = Validator.builder(Patient.class)
                 Issue.error(IssueType.REQUIRED, "An identifier is required").at("identifier"))
         .build();
 
-SE_PATIENT.validate(patient).throwIfInvalid();   // in a server handler: 422 with an OperationOutcome
+// In a server handler: reject errors with 422; warnings alone do not block.
+ValidationResult result = SE_PATIENT.validate(patient);
+if (!result.isValid()) {
+    throw FhirHttpException.unprocessable(result.toOperationOutcome());
+}
 ```
+
+String issue factories put the description in `details.text`; optional `diagnostics` can carry additional context.
 
 ## Client
 
 A thin layer over the JDK's `HttpClient`: typed resources, FHIR search syntax, paging and errors as OperationOutcomes.
 Clients are cheap immutable values, so one per target server or request is fine.
+
+HTTP errors use `se.poroli.fhirplace.r5.rest.FhirHttpException` in both clients and server handlers. It carries the HTTP
+status, optional OperationOutcome and headers, with a message formatted as `HTTP <status>[: detail]`.
 
 ```java
 FhirClient fhir = FhirClient.of("https://example.org/fhir");
@@ -113,6 +123,7 @@ All artifacts have the group id `se.poroli.fhirplace`.
 | [`fhirplace-r5-bom`](fhirplace-r5/bom) | Versions of all R5 artifacts |
 | [`fhirplace-r5-all`](fhirplace-r5/all) | Every resource at once (`<type>pom</type>`) |
 | [`fhirplace-r5-validation`](fhirplace-r5/validation) | Profiles as code: typed validation rules → OperationOutcome |
+| [`fhirplace-r5-rest`](fhirplace-r5/rest) | Shared HTTP errors: status, OperationOutcome and headers |
 | [`fhirplace-r5-client`](fhirplace-r5/client) | FHIR RESTful client on the JDK's `HttpClient` |
 | [`fhirplace-r5-server`](fhirplace-r5/server) | Framework-independent FHIR server engine and handler API |
 | [`fhirplace-r5-server-jaxrs`](fhirplace-r5/server-jaxrs) | Server adapter for Jakarta REST + CDI (MicroProfile, Quarkus) |

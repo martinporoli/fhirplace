@@ -8,6 +8,7 @@ module se.poroli.fhirplace.r5.client {
     requires transitive se.poroli.fhirplace.r5;
     requires transitive se.poroli.fhirplace.r5.bundle;
     requires transitive se.poroli.fhirplace.r5.operationoutcome;
+    requires transitive se.poroli.fhirplace.r5.rest;
     requires jakarta.json;
 
     exports se.poroli.fhirplace.r5.client;

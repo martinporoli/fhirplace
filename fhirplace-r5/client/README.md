@@ -30,8 +30,9 @@ links are resolved against the base URL.
 `request(path)` builds requests for interactions without a method of their own. The path is relative to the FHIR
 base, with or without a leading `/`; absolute URLs are rejected, so the client's headers never leave its server.
 
-Error statuses throw `FhirClientException` with `status()`, `outcome()` (the server's OperationOutcome) and the
-response headers; a stale update, for example, fails with 412.
+Error statuses throw `se.poroli.fhirplace.r5.rest.FhirHttpException`, shared with the server, with `status()`,
+`outcome()` (the server's OperationOutcome, or `null` when absent) and the response headers. `header(name)` matches
+case-insensitively; a stale update, for example, fails with 412.
 
 **Configuration and cheap clients.** A `FhirClient` is an immutable value: the base URL plus an `HttpClient`, default
 headers, a format and an optional request timeout. The expensive part, the `HttpClient` with its connections and
@@ -85,8 +86,9 @@ HttpResponse<Patient> response = httpClient.send(
         FhirBodyHandlers.of(Patient.class));
 ```
 
-**Dependencies:** `fhirplace-r5-core`, the Bundle and OperationOutcome modules, and the Jakarta JSON Processing API.
-Add an implementation such as Parsson unless your runtime provides one.
+**Dependencies:** `fhirplace-r5-core`, `fhirplace-r5-rest` (shared HTTP errors), the Bundle and OperationOutcome
+modules, and the Jakarta JSON Processing API. Add an implementation such as Parsson unless your runtime provides
+one. Validation is used only by the tests, not brought into an application's runtime.
 
 Tested against a real fhirplace server in-process, including paging with `count(...)`, and against stub servers for
 paging edge cases and errors that are not FHIR.

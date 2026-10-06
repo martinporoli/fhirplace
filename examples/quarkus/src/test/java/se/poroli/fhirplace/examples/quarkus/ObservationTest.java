@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import se.poroli.fhirplace.r5.client.FhirClient;
-import se.poroli.fhirplace.r5.client.FhirClientException;
 import se.poroli.fhirplace.r5.client.SearchQuery;
 import se.poroli.fhirplace.r5.datatypes.CodeableConcept;
 import se.poroli.fhirplace.r5.datatypes.Coding;
 import se.poroli.fhirplace.r5.datatypes.Quantity;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.observation.Observation;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 import se.poroli.fhirplace.r5.valuesets.ObservationStatus;
 
 /** Uses the Observation endpoints, which support only read, create and search. */
@@ -55,7 +55,7 @@ class ObservationTest {
 
     @Test
     void interactionsTheHandlerDoesNotImplementAreNotAllowed() {
-        assertEquals(405, assertThrows(FhirClientException.class,
+        assertEquals(405, assertThrows(FhirHttpException.class,
                 () -> FhirClient.of(base).delete(Observation.class, "1")).status());
     }
 }

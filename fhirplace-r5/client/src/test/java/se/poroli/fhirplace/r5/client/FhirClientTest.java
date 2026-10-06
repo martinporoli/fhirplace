@@ -2,6 +2,7 @@ package se.poroli.fhirplace.r5.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -18,6 +19,7 @@ import se.poroli.fhirplace.r5.datatypes.HumanName;
 import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 
 /** The client against a real fhirplace server. */
 class FhirClientTest {
@@ -55,27 +57,51 @@ class FhirClientTest {
         assertEquals(true, updated.body().active().value());
         assertEquals(null, fhir.vread(Patient.class, patient.id(), "1").body().active());
 
-        FhirClientException conflict = assertThrows(FhirClientException.class,
+        FhirHttpException conflict = assertThrows(FhirHttpException.class,
                 () -> fhir.update(patient.toBuilder().active(false).build()));   // still version 1: stale
         assertEquals(412, conflict.status());
 
         assertEquals(204, fhir.delete(Patient.class, patient.id()).status());
-        assertEquals(410, assertThrows(FhirClientException.class,
+        assertEquals(410, assertThrows(FhirHttpException.class,
                 () -> fhir.read(Patient.class, patient.id())).status());
     }
 
     @Test
     void errorsCarryTheServersOutcomeAndHeaders() {
-        FhirClientException notFound = assertThrows(FhirClientException.class,
+        FhirHttpException notFound = assertThrows(FhirHttpException.class,
                 () -> fhir.read(Patient.class, "archived"));
-        FhirClientException busy = assertThrows(FhirClientException.class, () -> fhir.read(Patient.class, "busy"));
+        FhirHttpException busy = assertThrows(FhirHttpException.class, () -> fhir.read(Patient.class, "busy"));
 
         assertEquals(404, notFound.status());
         assertEquals("Patient/archived was archived; ask the records office",
                 notFound.outcome().issue().getFirst().diagnostics().value());
-        assertTrue(notFound.getMessage().contains("archived"));
+        assertEquals("HTTP 404: Patient/archived was archived; ask the records office", notFound.getMessage());
         assertEquals(503, busy.status());
-        assertEquals("120", busy.header("Retry-After"));
+        assertEquals("120", busy.header("retry-after"));
+    }
+
+    @Test
+    void errorsWithoutAnOutcomeKeepTheirStatusAndHeaders() {
+        FhirHttpException error = assertThrows(FhirHttpException.class,
+                () -> fhir.read(Patient.class, "no-outcome"));
+
+        assertEquals(503, error.status());
+        assertEquals("120", error.header("Retry-After"));
+        assertNull(error.outcome());
+        assertEquals("HTTP 503", error.getMessage());
+    }
+
+    @Test
+    void validationErrorsKeepTheirDetailsAndExpression() {
+        FhirHttpException error = assertThrows(FhirHttpException.class, () -> fhir.create(patient("Rejected")));
+
+        assertEquals(422, error.status());
+        OperationOutcome.Issue issue = error.outcome().issue().getFirst();
+        assertEquals("business-rule", issue.code().valueAsString());
+        assertEquals("The family name Rejected is not accepted", issue.details().text().value());
+        assertEquals("Patient.name[0].family", issue.expression().getFirst().value());
+        assertNull(issue.diagnostics());
+        assertEquals("HTTP 422: The family name Rejected is not accepted", error.getMessage());
     }
 
     @Test
@@ -108,7 +134,7 @@ class FhirClientTest {
 
     @Test
     void searchErrorsAreReported() {
-        FhirClientException e = assertThrows(FhirClientException.class,
+        FhirHttpException e = assertThrows(FhirHttpException.class,
                 () -> fhir.search(Patient.class, SearchQuery.where("shoe-size", 42)));
 
         assertEquals(400, e.status());
@@ -140,7 +166,7 @@ class FhirClientTest {
         assertEquals(patient, fhir.readAsync(Patient.class, patient.id()).join().body());
         CompletionException e = assertThrows(CompletionException.class,
                 () -> fhir.readAsync(Patient.class, "archived").join());
-        assertEquals(404, assertInstanceOf(FhirClientException.class, e.getCause()).status());
+        assertEquals(404, assertInstanceOf(FhirHttpException.class, e.getCause()).status());
     }
 
     @Test

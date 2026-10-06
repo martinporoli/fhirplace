@@ -26,6 +26,7 @@ import java.util.stream.StreamSupport;
 import se.poroli.fhirplace.r5.Resource;
 import se.poroli.fhirplace.r5.bundle.Bundle;
 import se.poroli.fhirplace.r5.datatypes.Meta;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 
 /**
  * A client for one FHIR server, on the JDK's {@link HttpClient}.
@@ -54,7 +55,7 @@ import se.poroli.fhirplace.r5.datatypes.Meta;
  * fhir.at("https://b.example/fhir").read(Patient.class, "123");       // same HttpClient, headers, format, timeout
  * }</pre>
  *
- * <p>Error statuses raise {@link FhirClientException} with the server's OperationOutcome. Reading FHIR JSON needs a
+ * <p>Error statuses raise {@link FhirHttpException} with the server's OperationOutcome. Reading FHIR JSON needs a
  * Jakarta JSON Processing implementation, such as Parsson, unless the runtime provides one.
  */
 public final class FhirClient {
@@ -214,7 +215,7 @@ public final class FhirClient {
      * @param id the logical id
      * @param <T> the resource type
      * @return the response with the resource
-     * @throws FhirClientException for an error status, such as 404 or 410
+     * @throws FhirHttpException for an error status, such as 404 or 410
      */
     public <T extends Resource> FhirClientResponse<T> read(Class<T> type, String id) {
         return send(request(path(type, id)).GET(), type);
@@ -226,7 +227,7 @@ public final class FhirClient {
      * @param type the resource class
      * @param id the logical id
      * @param <T> the resource type
-     * @return the response, completing exceptionally with {@link FhirClientException} for an error status
+     * @return the response, completing exceptionally with {@link FhirHttpException} for an error status
      */
     public <T extends Resource> CompletableFuture<FhirClientResponse<T>> readAsync(Class<T> type, String id) {
         return sendAsync(request(path(type, id)).GET(), type);
@@ -240,7 +241,7 @@ public final class FhirClient {
      * @param versionId the version id
      * @param <T> the resource type
      * @return the response with the resource version
-     * @throws FhirClientException for an error status
+     * @throws FhirHttpException for an error status
      */
     public <T extends Resource> FhirClientResponse<T> vread(Class<T> type, String id, String versionId) {
         return send(request(path(type, id) + "/_history/" + encode(versionId)).GET(), type);
@@ -253,7 +254,7 @@ public final class FhirClient {
      * @param resource the resource; its id, if any, is ignored by the server
      * @param <T> the resource type
      * @return the response with the stored resource
-     * @throws FhirClientException for an error status, such as 400 or 422
+     * @throws FhirHttpException for an error status, such as 400 or 422
      */
     public <T extends Resource> FhirClientResponse<T> create(T resource) {
         return send(createRequest(resource), typeOf(resource));
@@ -264,7 +265,7 @@ public final class FhirClient {
      *
      * @param resource the resource
      * @param <T> the resource type
-     * @return the response, completing exceptionally with {@link FhirClientException} for an error status
+     * @return the response, completing exceptionally with {@link FhirHttpException} for an error status
      */
     public <T extends Resource> CompletableFuture<FhirClientResponse<T>> createAsync(T resource) {
         return sendAsync(createRequest(resource), typeOf(resource));
@@ -279,7 +280,7 @@ public final class FhirClient {
      * @param <T> the resource type
      * @return the response with the stored resource
      * @throws IllegalArgumentException if the resource has no id
-     * @throws FhirClientException for an error status, such as 412 on a version conflict
+     * @throws FhirHttpException for an error status, such as 412 on a version conflict
      */
     public <T extends Resource> FhirClientResponse<T> update(T resource) {
         return send(updateRequest(resource), typeOf(resource));
@@ -290,7 +291,7 @@ public final class FhirClient {
      *
      * @param resource the new content, with its id
      * @param <T> the resource type
-     * @return the response, completing exceptionally with {@link FhirClientException} for an error status
+     * @return the response, completing exceptionally with {@link FhirHttpException} for an error status
      */
     public <T extends Resource> CompletableFuture<FhirClientResponse<T>> updateAsync(T resource) {
         return sendAsync(updateRequest(resource), typeOf(resource));
@@ -302,7 +303,7 @@ public final class FhirClient {
      * @param type the resource class
      * @param id the logical id
      * @return the response; its body is the OperationOutcome the server may send, or {@code null}
-     * @throws FhirClientException for an error status
+     * @throws FhirHttpException for an error status
      */
     public FhirClientResponse<Resource> delete(Class<? extends Resource> type, String id) {
         return send(request(path(type, id)).DELETE(), Resource.class);
@@ -315,7 +316,7 @@ public final class FhirClient {
      * @param type the resource class
      * @param search the search parameters
      * @return the response with the searchset Bundle
-     * @throws FhirClientException for an error status, such as 400 for an unknown parameter
+     * @throws FhirHttpException for an error status, such as 400 for an unknown parameter
      */
     public FhirClientResponse<Bundle> search(Class<? extends Resource> type, SearchQuery search) {
         return send(searchRequest(type, search), Bundle.class);
@@ -326,7 +327,7 @@ public final class FhirClient {
      *
      * @param type the resource class
      * @param search the search parameters
-     * @return the response, completing exceptionally with {@link FhirClientException} for an error status
+     * @return the response, completing exceptionally with {@link FhirHttpException} for an error status
      */
     public CompletableFuture<FhirClientResponse<Bundle>> searchAsync(Class<? extends Resource> type,
             SearchQuery search) {
@@ -343,7 +344,7 @@ public final class FhirClient {
      * @param search the search parameters
      * @param <T> the resource type
      * @return the matches; close the stream, for example with try-with-resources, when not consuming it fully
-     * @throws FhirClientException for an error status, when the page is fetched
+     * @throws FhirHttpException for an error status, when the page is fetched
      * @throws IllegalStateException when a {@code next} link points to another server, when the stream reaches it
      */
     public <T extends Resource> Stream<T> searchAll(Class<T> type, SearchQuery search) {
@@ -423,7 +424,7 @@ public final class FhirClient {
      * @param type the expected resource class; {@code Resource.class} for any
      * @param <T> the resource type
      * @return the response
-     * @throws FhirClientException for an error status
+     * @throws FhirHttpException for an error status
      * @throws UncheckedIOException if the request cannot be sent
      */
     public <T extends Resource> FhirClientResponse<T> send(HttpRequest.Builder request, Class<T> type) {
@@ -444,7 +445,7 @@ public final class FhirClient {
      * @param request the request, typically from {@link #request(String)}
      * @param type the expected resource class; {@code Resource.class} for any
      * @param <T> the resource type
-     * @return the response, completing exceptionally with {@link FhirClientException} for an error status
+     * @return the response, completing exceptionally with {@link FhirHttpException} for an error status
      */
     public <T extends Resource> CompletableFuture<FhirClientResponse<T>> sendAsync(HttpRequest.Builder request,
             Class<T> type) {

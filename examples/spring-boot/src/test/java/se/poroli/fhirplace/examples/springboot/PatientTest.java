@@ -12,13 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import se.poroli.fhirplace.r5.client.FhirClient;
-import se.poroli.fhirplace.r5.client.FhirClientException;
 import se.poroli.fhirplace.r5.client.FhirClientResponse;
 import se.poroli.fhirplace.r5.client.FhirFormat;
 import se.poroli.fhirplace.r5.client.SearchQuery;
 import se.poroli.fhirplace.r5.datatypes.HumanName;
 import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.patient.Patient;
+import se.poroli.fhirplace.r5.rest.FhirHttpException;
 
 /** Uses the Patient endpoints with the fhirplace client, the way another application would. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -66,7 +66,7 @@ class PatientTest {
         // update: the client sends If-Match from meta.versionId, so a stale copy is rejected
         Patient updated = fhir.update(patient.toBuilder().active(true).build()).body();
         assertEquals("2", updated.meta().versionId().value());
-        assertEquals(412, assertThrows(FhirClientException.class,
+        assertEquals(412, assertThrows(FhirHttpException.class,
                 () -> fhir.update(patient.toBuilder().active(false).build())).status());
 
         // the first version is still readable
@@ -74,21 +74,21 @@ class PatientTest {
 
         // delete, after which the patient is gone
         assertEquals(204, fhir.delete(Patient.class, patient.id()).status());
-        assertEquals(410, assertThrows(FhirClientException.class,
+        assertEquals(410, assertThrows(FhirHttpException.class,
                 () -> fhir.read(Patient.class, patient.id())).status());
     }
 
     @Test
     void errorsAreOperationOutcomes() {
-        FhirClientException notFound = assertThrows(FhirClientException.class,
+        FhirHttpException notFound = assertThrows(FhirHttpException.class,
                 () -> fhir().read(Patient.class, "12345678"));
-        FhirClientException unnamed = assertThrows(FhirClientException.class,
+        FhirHttpException unnamed = assertThrows(FhirHttpException.class,
                 () -> fhir().create(Patient.builder().active(true).build()));
 
         assertEquals(404, notFound.status());
         assertEquals("not-found", notFound.outcome().issue().getFirst().code().valueAsString());
         assertEquals(422, unnamed.status());
-        assertEquals("A patient must have a name", unnamed.outcome().issue().getFirst().diagnostics().value());
+        assertEquals("A patient must have a name", unnamed.outcome().issue().getFirst().details().text().value());
     }
 
     @Test
@@ -110,7 +110,7 @@ class PatientTest {
     void unknownSearchParametersAreRejectedUnlessLenient() {
         SearchQuery search = SearchQuery.where("shoe-size", 42);
 
-        assertEquals(400, assertThrows(FhirClientException.class,
+        assertEquals(400, assertThrows(FhirHttpException.class,
                 () -> fhir().search(Patient.class, search)).status());
         assertEquals(200, fhir().withHeader("Prefer", "handling=lenient").search(Patient.class, search).status());
     }

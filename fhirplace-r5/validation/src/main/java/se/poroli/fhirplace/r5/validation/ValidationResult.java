@@ -7,7 +7,7 @@ import se.poroli.fhirplace.r5.operationoutcome.IssueType;
 import se.poroli.fhirplace.r5.operationoutcome.OperationOutcome;
 
 /**
- * The issues a {@link Validator} found.
+ * The issues a {@link Validator} found, independent of HTTP or any other transport.
  *
  * @param issues the issues in the order the rules ran, located from the validated type
  */
@@ -46,9 +46,9 @@ public record ValidationResult(List<Issue> issues) {
     }
 
     /**
-     * Returns the issues as an OperationOutcome: one issue each, with severity, code, the message as diagnostics when
-     * there is one, and the expression when there is one. Without issues, it has one informational issue saying so,
-     * as an OperationOutcome needs one.
+     * Returns the issues as an OperationOutcome: one issue each, with severity, code, details and diagnostics copied
+     * verbatim, and the expression when present. Without issues, it has one informational issue saying so, as an
+     * OperationOutcome needs one.
      *
      * @return the OperationOutcome
      */
@@ -57,10 +57,9 @@ public record ValidationResult(List<Issue> issues) {
         for (Issue issue : issues) {
             OperationOutcome.Issue.Builder entry = OperationOutcome.Issue.builder()
                     .severity(issue.severity())
-                    .code(issue.code());
-            if (issue.message() != null) {
-                entry.diagnostics(FhirString.of(issue.message()));
-            }
+                    .code(issue.code())
+                    .details(issue.details())
+                    .diagnostics(issue.diagnostics());
             if (issue.expression() != null) {
                 entry.addExpression(FhirString.of(issue.expression()));
             }
@@ -74,27 +73,5 @@ public record ValidationResult(List<Issue> issues) {
                     .build());
         }
         return outcome.build();
-    }
-
-    /**
-     * Throws if there are errors; a fhirplace server answers with 422 and {@link #toOperationOutcome()}.
-     *
-     * @throws ValidationException if the result is not valid
-     */
-    public void throwIfInvalid() {
-        throwIfInvalid(422);
-    }
-
-    /**
-     * Throws if there are errors; a fhirplace server answers with the given status and {@link #toOperationOutcome()},
-     * which includes any warnings.
-     *
-     * @param status the HTTP status for the response, 400 to 599
-     * @throws ValidationException if the result is not valid
-     */
-    public void throwIfInvalid(int status) {
-        if (!isValid()) {
-            throw new ValidationException(this, status);
-        }
     }
 }

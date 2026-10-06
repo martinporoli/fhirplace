@@ -22,6 +22,11 @@
         </dependency>
         <dependency>
             <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
             <artifactId>fhirplace-r5-bundle</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -46,6 +51,12 @@
             <artifactId>fhirplace-r5-server</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>se.poroli.fhirplace</groupId>
+            <artifactId>fhirplace-r5-validation</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
