@@ -48,8 +48,16 @@ public final class ValidationException extends RuntimeException {
 
     private static String message(ValidationResult result) {
         return result.errors().stream()
-                .map(issue -> (issue.expression() == null ? "" : issue.expression() + ": ") + issue.message())
+                .map(ValidationException::message)
                 .findFirst()
                 .orElse("Validation failed");
+    }
+
+    private static String message(Issue issue) {
+        String message = issue.message();
+        if (issue.expression() == null) {
+            return message == null ? issue.code().code() : message;
+        }
+        return message == null ? issue.expression() : issue.expression() + ": " + message;
     }
 }

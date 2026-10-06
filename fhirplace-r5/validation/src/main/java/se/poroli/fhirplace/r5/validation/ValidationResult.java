@@ -46,8 +46,9 @@ public record ValidationResult(List<Issue> issues) {
     }
 
     /**
-     * Returns the issues as an OperationOutcome: one issue each, with severity, code, the message as diagnostics, and
-     * the expression. Without issues, it has one informational issue saying so, as an OperationOutcome needs one.
+     * Returns the issues as an OperationOutcome: one issue each, with severity, code, the message as diagnostics when
+     * there is one, and the expression when there is one. Without issues, it has one informational issue saying so,
+     * as an OperationOutcome needs one.
      *
      * @return the OperationOutcome
      */
@@ -56,8 +57,10 @@ public record ValidationResult(List<Issue> issues) {
         for (Issue issue : issues) {
             OperationOutcome.Issue.Builder entry = OperationOutcome.Issue.builder()
                     .severity(issue.severity())
-                    .code(issue.code())
-                    .diagnostics(FhirString.of(issue.message()));
+                    .code(issue.code());
+            if (issue.message() != null) {
+                entry.diagnostics(FhirString.of(issue.message()));
+            }
             if (issue.expression() != null) {
                 entry.addExpression(FhirString.of(issue.expression()));
             }

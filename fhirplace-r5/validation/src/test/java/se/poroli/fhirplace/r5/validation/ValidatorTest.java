@@ -2,6 +2,7 @@ package se.poroli.fhirplace.r5.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -153,6 +154,28 @@ class ValidatorTest {
         assertEquals("Patient.identifier", issue.expression().getFirst().value());
         assertEquals("information", SE_PATIENT.validate(valid().build()).toOperationOutcome().issue().getFirst()
                 .severity().valueAsString());
+    }
+
+    @Test
+    void issuesMayHaveNoMessageOrExpression() {
+        ValidationResult result = new ValidationResult(List.of(
+                Issue.warning(IssueType.VALUE, ""),
+                Issue.information(IssueType.INFORMATIONAL, "For information")));
+
+        assertNull(result.issues().getFirst().message());
+        OperationOutcome outcome = result.toOperationOutcome();
+        assertNull(outcome.issue().getFirst().diagnostics());
+        assertEquals(List.of(), outcome.issue().getFirst().expression());
+        assertEquals("warning", outcome.issue().getFirst().severity().valueAsString());
+        assertEquals("For information", outcome.issue().get(1).diagnostics().value());
+    }
+
+    @Test
+    void anErrorWithoutAMessageStillThrows() {
+        ValidationResult invalid = new ValidationResult(List.of(Issue.fatal(IssueType.PROCESSING, null)));
+
+        ValidationException e = assertThrows(ValidationException.class, invalid::throwIfInvalid);
+        assertEquals("processing", e.getMessage());
     }
 
     @Test

@@ -15,22 +15,23 @@ import se.poroli.fhirplace.r5.operationoutcome.IssueType;
  * @param ruleId the id of the rule that reported the issue, or {@code null} before the validator sets it
  * @param severity how serious the issue is
  * @param code the kind of issue
- * @param message the message for the client
+ * @param message the message for the client, or {@code null} (or empty) when the issue has none
  * @param expression where the issue is: relative to the validated element when declared, such as {@code family},
- *     and absolute in a {@link ValidationResult}, such as {@code Patient.name[0].family}; {@code null} for the
- *     element itself
+ *     and absolute in a {@link ValidationResult}, such as {@code Patient.name[0].family}; {@code null} (or empty)
+ *     for the element itself
  */
 public record Issue(String ruleId, IssueSeverity severity, IssueType code, String message, String expression) {
 
     /**
-     * Creates the issue.
+     * Creates the issue. The message and expression are optional; an empty one is stored as {@code null}.
      *
-     * @throws NullPointerException if the severity, code or message is {@code null}
+     * @throws NullPointerException if the severity or code is {@code null}
      */
     public Issue {
         Objects.requireNonNull(severity, "severity");
         Objects.requireNonNull(code, "code");
-        Objects.requireNonNull(message, "message");
+        message = message == null || message.isEmpty() ? null : message;
+        expression = expression == null || expression.isEmpty() ? null : expression;
     }
 
     /**
