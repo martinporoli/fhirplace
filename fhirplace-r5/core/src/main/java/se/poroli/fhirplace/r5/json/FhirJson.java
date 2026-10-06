@@ -4,11 +4,14 @@ import jakarta.json.Json;
 import jakarta.json.JsonException;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import jakarta.json.JsonReaderFactory;
 import jakarta.json.stream.JsonGenerator;
+import jakarta.json.stream.JsonGeneratorFactory;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Map;
 import java.util.Objects;
 import se.poroli.fhirplace.r5.Resource;
 import se.poroli.fhirplace.r5.internal.Errors;
@@ -26,6 +29,16 @@ import se.poroli.fhirplace.r5.internal.Errors;
 public final class FhirJson {
 
     private FhirJson() {
+    }
+
+    /**
+     * The JSON-P factories, created on first use. {@link Json#createGenerator} and {@link Json#createReader} look up
+     * the provider on every call, which dominates the cost of reading and writing a small resource; the factories are
+     * thread-safe and are reused here.
+     */
+    private static final class Factories {
+        static final JsonGeneratorFactory GENERATORS = Json.createGeneratorFactory(Map.of());
+        static final JsonReaderFactory READERS = Json.createReaderFactory(Map.of());
     }
 
     /**
@@ -48,7 +61,7 @@ public final class FhirJson {
      */
     public static void write(Resource resource, Writer writer) {
         Objects.requireNonNull(resource, "resource");
-        try (JsonGenerator generator = Json.createGenerator(new NonClosingWriter(writer))) {
+        try (JsonGenerator generator = Factories.GENERATORS.createGenerator(new NonClosingWriter(writer))) {
             write(resource, generator);
         }
     }
@@ -97,7 +110,7 @@ public final class FhirJson {
      */
     public static Resource read(Reader reader) {
         JsonObject object;
-        try (JsonReader json = Json.createReader(new NonClosingReader(reader))) {
+        try (JsonReader json = Factories.READERS.createReader(new NonClosingReader(reader))) {
             object = json.readObject();
         } catch (JsonException e) {
             throw Errors.syntax("Invalid JSON: " + e.getMessage(), e);
