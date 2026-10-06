@@ -32,6 +32,7 @@ target/
 .vscode/
 
 # AI assistants
+.agents/
 CLAUDE.md
 CLAUDE.local.md
 .claude/
