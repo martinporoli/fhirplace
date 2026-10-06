@@ -15,9 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import se.poroli.fhirplace.r5.datatypes.CodeableConcept;
 import se.poroli.fhirplace.r5.datatypes.FhirString;
+import se.poroli.fhirplace.r5.datatypes.FhirXhtml;
 import se.poroli.fhirplace.r5.datatypes.HumanName;
 import se.poroli.fhirplace.r5.datatypes.Identifier;
 import se.poroli.fhirplace.r5.datatypes.Meta;
+import se.poroli.fhirplace.r5.datatypes.Narrative;
 import se.poroli.fhirplace.r5.datatypes.Reference;
 import se.poroli.fhirplace.r5.operationoutcome.IssueSeverity;
 import se.poroli.fhirplace.r5.operationoutcome.IssueType;
@@ -43,6 +45,7 @@ import se.poroli.fhirplace.r5.server.VRead;
 import se.poroli.fhirplace.r5.server.VersionId;
 import se.poroli.fhirplace.r5.validation.Issue;
 import se.poroli.fhirplace.r5.validation.Validator;
+import se.poroli.fhirplace.r5.valuesets.NarrativeStatus;
 
 /** A versioned in-memory Patient store implementing every supported interaction. */
 @ApplicationScoped
@@ -57,6 +60,7 @@ public class PatientHandler {
     static final String ARCHIVED = "archived";
     static final String BUSY = "busy";
     static final String CRASH = "crash";
+    static final String BROKEN = "broken";
 
     @Read
     public Optional<Patient> read(@Id String id) {
@@ -72,6 +76,15 @@ public class PatientHandler {
         }
         if (id.equals(CRASH)) {
             throw new IllegalStateException("Database password expired for user fhir");   // must not reach clients
+        }
+        if (id.equals(BROKEN)) {
+            return Optional.of(Patient.builder()
+                    .id(BROKEN)
+                    .text(Narrative.builder()
+                            .status(NarrativeStatus.GENERATED)
+                            .div(FhirXhtml.of("<div>oops"))   // not well-formed, so FHIR XML cannot be written
+                            .build())
+                    .build());
         }
         if (id.equals(BUSY)) {
             throw new FhirException(503, OperationOutcome.builder()

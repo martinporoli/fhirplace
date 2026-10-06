@@ -36,8 +36,9 @@ public final class FhirServer {
 
     /**
      * Handles one request. FHIR errors, including those thrown by handlers as {@link FhirException}, become
-     * responses with an OperationOutcome. Any other exception from a handler is logged through
-     * {@link System.Logger} and answered with 500 and an OperationOutcome that does not reveal the exception.
+     * responses with an OperationOutcome. Any other exception from a handler, and any resource that cannot be
+     * serialized in the negotiated format, is logged through {@link System.Logger} and answered with 500 and an
+     * OperationOutcome that does not reveal the exception.
      *
      * @param request the request
      * @return the response

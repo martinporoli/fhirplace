@@ -180,21 +180,51 @@ public final class Engine {
         } catch (RuntimeException e) {
             LOG.log(System.Logger.Level.ERROR, "FHIR request " + fhirRequest.method() + " " + fhirRequest.path()
                     + " failed", e);
-            result = new Result(500, OperationOutcome.builder()
-                    .addIssue(OperationOutcome.Issue.builder()
-                            .severity(IssueSeverity.FATAL)
-                            .code(IssueType.EXCEPTION)
-                            .diagnostics(FhirString.of("Internal server error"))
-                            .build())
-                    .build());
+            result = internalError();
         }
+        return serialize(result, format, fhirRequest);
+    }
+
+    /**
+     * Serializes the result. A handler may return a resource that cannot be written in the negotiated format, such as
+     * malformed narrative XHTML when the client asked for XML; that is logged and answered with 500 and an
+     * OperationOutcome, like any other failure, instead of escaping {@link #handle} as an exception. The error is
+     * written as JSON, since JSON does not validate the narrative that made XML fail.
+     */
+    private FhirResponse serialize(Result result, Formats.Format format, FhirRequest fhirRequest) {
         Map<String, List<String>> headers = new LinkedHashMap<>(result.headers());
         byte[] body = new byte[0];
         if (result.body() != null) {
-            body = Formats.write(result.body(), format);
-            headers.put("Content-Type", List.of(format.mediaType() + ";charset=UTF-8"));
+            try {
+                body = Formats.write(result.body(), format);
+            } catch (RuntimeException e) {
+                LOG.log(System.Logger.Level.ERROR, "FHIR response for " + fhirRequest.method() + " "
+                        + fhirRequest.path() + " could not be serialized", e);
+                result = internalError();
+                format = Formats.Format.DEFAULT;
+                headers = new LinkedHashMap<>(result.headers());
+                try {
+                    body = Formats.write(result.body(), format);
+                } catch (RuntimeException fallback) {
+                    LOG.log(System.Logger.Level.ERROR, "FHIR error response could not be serialized", fallback);
+                }
+            }
+            if (body.length > 0) {
+                headers.put("Content-Type", List.of(format.mediaType() + ";charset=UTF-8"));
+            }
         }
         return new FhirResponse(result.status(), headers, body);
+    }
+
+    /** A 500 result whose OperationOutcome reveals nothing about the failure. */
+    private static Result internalError() {
+        return new Result(500, OperationOutcome.builder()
+                .addIssue(OperationOutcome.Issue.builder()
+                        .severity(IssueSeverity.FATAL)
+                        .code(IssueType.EXCEPTION)
+                        .diagnostics(FhirString.of("Internal server error"))
+                        .build())
+                .build());
     }
 
     private Result route(Request request) {

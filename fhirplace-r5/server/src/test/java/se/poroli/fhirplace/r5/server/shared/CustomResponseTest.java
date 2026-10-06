@@ -34,6 +34,19 @@ public class CustomResponseTest {
     }
 
     @Test
+    void resourcesThatCannotBeSerializedAreInternalServerErrorsWithoutDetails() {
+        TestServer.Reply reply = TestServer.get("Patient/" + PatientHandler.BROKEN, "Accept", "application/fhir+xml");
+
+        assertEquals(500, reply.status());
+        assertTrue(reply.header("Content-Type").startsWith("application/fhir+json"));
+        OperationOutcome.Issue issue = Fixtures.outcome(reply).issue().getFirst();
+        assertEquals("fatal", issue.severity().valueAsString());
+        assertEquals("exception", issue.code().valueAsString());
+        assertEquals("Internal server error", issue.diagnostics().value());
+        assertTrue(!reply.body().contains("XHTML"), "no internals in the response");
+    }
+
+    @Test
     void errorsCanCarryHeaders() {
         TestServer.Reply reply = TestServer.get("Patient/" + PatientHandler.BUSY);
 
