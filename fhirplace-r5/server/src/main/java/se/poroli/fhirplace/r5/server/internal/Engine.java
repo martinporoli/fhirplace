@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import se.poroli.fhirplace.r5.Resource;
 import se.poroli.fhirplace.r5.bundle.Bundle;
@@ -41,7 +42,7 @@ import se.poroli.fhirplace.r5.server.Saved;
 /** Implements the FHIR RESTful API on top of the validated handlers. Thread-safe. */
 public final class Engine {
 
-    private static final java.util.regex.Pattern ID = java.util.regex.Pattern.compile("[A-Za-z0-9\\-.]{1,64}");
+    private static final Pattern ID = Pattern.compile("[A-Za-z0-9\\-.]{1,64}");
     private static final System.Logger LOG = System.getLogger(FhirServer.class.getName());
     private static final DateTimeFormatter HTTP_DATE =
             DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US).withZone(ZoneOffset.UTC);

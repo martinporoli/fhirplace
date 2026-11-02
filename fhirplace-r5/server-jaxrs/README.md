@@ -1,6 +1,6 @@
 # fhirplace-r5-server-jaxrs
 
-Serves the fhirplace FHIR server on Jakarta REST and CDI: MicroProfile runtimes (tested on Helidon MP) and Quarkus.
+Serves the fhirplace FHIR server on Jakarta REST and CDI: MicroProfile runtimes (tested on Helidon MP and Quarkus).
 Adding the dependency is all the setup needed:
 
 - every CDI bean annotated with `@FhirResource` is served, under the application's Jakarta REST path;
